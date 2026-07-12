@@ -258,8 +258,12 @@
   function onSit(on) {
     state.seated = on;
     $("#chapter").classList.toggle("seated", on);
-    if (on) { state.sitStart = Date.now(); if (A()) A().stillOn(); openStill(); }
-    else { accrueSit(); if (A()) A().stillOff(); $("#stillPanel").classList.add("hidden"); }
+    clearInterval(state._sitTimer);
+    if (on) {
+      state.sitStart = Date.now();
+      state._sitTimer = setInterval(() => { accrueSit(); state.sitStart = Date.now(); }, 15000);  // save presence even if they never rise
+      if (A()) A().stillOn(); openStill();
+    } else { accrueSit(); if (A()) A().stillOff(); $("#stillPanel").classList.add("hidden"); }
   }
   function accrueSit() {
     if (!state.sitStart) return;
@@ -296,6 +300,7 @@
   }
 
   function exitWorld() {
+    clearInterval(state._sitTimer);
     if (state.seated) accrueSit();
     if (window.World) World.unload();
     if (A()) { A().stillOff(); A().stopBed(); }

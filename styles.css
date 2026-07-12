@@ -263,6 +263,8 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
 
 /* ---------------------------------------------------- circle of stillness */
 .circle-btn span{color:var(--gold)}
+.in-halaqa{animation:arrive 1.3s ease both}
+@keyframes arrive{from{opacity:0}to{opacity:1}}
 .in-halaqa .mission-panel,.in-halaqa .focus-button,.in-halaqa #guide,.in-halaqa .reticle{display:none !important}
 .still-veil{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;transition:opacity 1.4s ease;
   background:radial-gradient(circle at 50% 44%,transparent 26%,rgba(6,10,20,.7) 100%)}

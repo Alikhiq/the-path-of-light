@@ -100,7 +100,7 @@ window.World = (function () {
 
   function clearScene() {
     interactables.forEach(t => t.el.remove());
-    interactables = []; colliders = []; starField = null;
+    interactables = []; colliders = []; starField = null; halaqaGlows = [];
     if (!scene) return;
     for (let i = scene.children.length - 1; i >= 0; i--) {
       const o = scene.children[i]; scene.remove(o);
@@ -114,7 +114,7 @@ window.World = (function () {
   const wallC = [0x14284a, 0x102544, 0x1a2c50, 0x0f2140];
   const WIN_C = [0xf2cd6a, 0xe0aa4f, 0x9adfdf];      // gold · ember · rare teal (lit windows)
   const CLOTH_C = [0x2f6d6d, 0x8a6a2f, 0x1e3a6b];    // muted teal · old gold · lapis (plain cloth awnings)
-  let winMats = [], clothMats = [], starField = null;
+  let winMats = [], clothMats = [], starField = null, halaqaGlows = [];
   const reducedMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
 
@@ -355,6 +355,7 @@ window.World = (function () {
     const halo = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 12),
       new THREE.MeshBasicMaterial({ color: 0xf2cd6a, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false }));
     halo.position.y = 0.85; g.add(halo);
+    halaqaGlows.push({ m: halo, base: 0.15, ph: x + z });          // slow breathing = quiet life
     g.position.set(x, 0, z); g.rotation.y = facing; scene.add(g); return g;
   }
 
@@ -385,6 +386,7 @@ window.World = (function () {
     const fhalo = new THREE.Mesh(new THREE.SphereGeometry(1.25, 12, 12),
       new THREE.MeshBasicMaterial({ color: 0xf2cd6a, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false }));
     fhalo.position.y = 0.6; scene.add(fhalo);
+    halaqaGlows.push({ m: fhalo, base: 0.1, ph: 2 }, { mesh: flame });
   }
 
   function addSit(x, z) {
@@ -477,7 +479,7 @@ window.World = (function () {
         step(player.pos.x + (mx / ml) * sp * dt, player.pos.z + (mz / ml) * sp * dt);
       }
     }
-    eyeY += ((seated ? 0.95 : 1.6) - eyeY) * Math.min(1, dt * 4);   // camera settles low when seated
+    eyeY += ((seated ? 0.95 : 1.6) - eyeY) * (reducedMotion ? 1 : Math.min(1, dt * 4));   // camera settles low when seated
     camera.position.set(player.pos.x, eyeY, player.pos.z);
     camera.rotation.y = player.yaw; camera.rotation.x = player.pitch;
 
@@ -496,6 +498,10 @@ window.World = (function () {
       if (t.glow) t.glow.position.y = 2.6 + Math.sin(now / 400 + t.pos.z) * 0.12;
     }
     if (starField && !reducedMotion) starField.material.opacity = 0.72 + Math.sin(now / 1400) * 0.14;
+    if (mode === "halaqa" && !reducedMotion) for (const g of halaqaGlows) {
+      if (g.m) g.m.material.opacity = g.base * (0.72 + 0.42 * (0.5 + 0.5 * Math.sin(now / 1700 + (g.ph || 0))));
+      else if (g.mesh) g.mesh.scale.setScalar(1 + Math.sin(now / 950) * 0.06);
+    }
 
     if (!paused && current && !seated) {
       const isSit = current.kind === "sit";
