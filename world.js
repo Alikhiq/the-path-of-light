@@ -99,7 +99,7 @@ window.World = (function () {
 
   function clearScene() {
     interactables.forEach(t => t.el.remove());
-    interactables = []; colliders = [];
+    interactables = []; colliders = []; starField = null;
     if (!scene) return;
     for (let i = scene.children.length - 1; i >= 0; i--) {
       const o = scene.children[i]; scene.remove(o);
@@ -111,6 +111,10 @@ window.World = (function () {
   }
 
   const wallC = [0x14284a, 0x102544, 0x1a2c50, 0x0f2140];
+  const WIN_C = [0xf2cd6a, 0xe0aa4f, 0x9adfdf];      // gold · ember · rare teal (lit windows)
+  const CLOTH_C = [0x2f6d6d, 0x8a6a2f, 0x1e3a6b];    // muted teal · old gold · lapis (plain cloth awnings)
+  let winMats = [], clothMats = [], starField = null;
+  const reducedMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
 
   function seedFrom(value) {
@@ -125,21 +129,33 @@ window.World = (function () {
   }
   // one city block filling an AABB with a cluster of buildings; registers ONE collider
   function block(cx, cz, hx, hz) {
-    colliders.push({ x: cx, z: cz, hx, hz });
+    colliders.push({ x: cx, z: cz, hx, hz });            // ONE collider per block — decoration below cannot affect it
     for (let gx = -hx + 2; gx < hx; gx += 4.2) for (let gz = -hz + 2; gz < hz; gz += 4.2) {
-      const h = 4 + rnd() * 8;
+      let h = 4 + rnd() * 8;
+      const tower = rnd() < 0.12; if (tower) h += 6 + rnd() * 5;   // a few taller towers (pure decoration)
       const px = cx + gx + (rnd() - 0.5) * 0.55, pz = cz + gz + (rnd() - 0.5) * 0.55;
       const bw = 3 + rnd() * 0.65, bd = 3 + rnd() * 0.65;
-      const b = box(px, pz, bw, h, bd, wallC[(Math.abs(px + pz) | 0) % 4]);
-      // window dots facing the nearest street (rough)
-      const winMat = new THREE.MeshBasicMaterial({ color: 0xf2cd6a });
-      const rows = Math.min(2, Math.floor(h / 2.4));
+      box(px, pz, bw, h, bd, wallC[(Math.abs(px + pz) | 0) % 4]);
+      if (tower) box(px, pz, bw * 0.55, 0.5, bd * 0.55, 0x24365a).position.y = h + 0.25;  // dark cap
+      const sx = px > 0 ? -1 : 1;                          // same street-facing rule as before
+      // window dots — varied: ~30% dark (skipped), gold/ember/rare-teal shared materials
+      const rows = Math.min(tower ? 4 : 2, Math.floor(h / 2.4));
       for (let r = 0; r < rows; r++) {
-        const win = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), winMat);
-        const sx = px > 0 ? -1 : 1;
+        if (rnd() < 0.3) continue;                         // dark window = saved draw call
+        const win = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.4 + rnd() * 0.2, 0.6 + rnd() * 0.2),
+          winMats[rnd() < 0.82 ? (rnd() < 0.5 ? 0 : 1) : 2]);
         win.position.set(px + sx * (bw / 2 + 0.02), 1.4 + r * 1.9, pz);
         win.rotation.y = sx > 0 ? Math.PI / 2 : -Math.PI / 2;
         scene.add(win);
+      }
+      // plain cloth awning on some street-facing walls — above head height, NO collider, NO markings
+      if (rnd() < 0.28) {
+        const aw = new THREE.Mesh(new THREE.PlaneGeometry(1.5 + rnd() * 0.6, 0.85), clothMats[(rnd() * 3) | 0]);
+        aw.position.set(px + sx * (bw / 2 + 0.45), 2.5, pz);
+        aw.rotation.y = sx > 0 ? Math.PI / 2 : -Math.PI / 2;
+        aw.rotation.x = -0.42 * sx;                        // tipped outward like hung cloth
+        scene.add(aw);
       }
     }
   }
@@ -195,30 +211,68 @@ window.World = (function () {
     else if (kind === "observatory") observatoryLandmark();
   }
 
+  // one Points draw call: a faint star shell on the upper hemisphere, inside the camera far plane.
+  // fog:false is essential — scene.fog would otherwise erase every star.
+  function stars(count) {
+    if (!count) return;
+    const pos = [], col = [];
+    const tints = [new THREE.Color(0xcfd8ea), new THREE.Color(0xf2cd6a), new THREE.Color(0x9adfdf)];
+    for (let i = 0; i < count; i++) {
+      const a = rnd() * Math.PI * 2, e = 0.12 + rnd() * 1.3, r = 110 + rnd() * 30; // radius inside far=160
+      pos.push(Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r, Math.sin(a) * Math.cos(e) * r);
+      const c = tints[rnd() < 0.86 ? 0 : rnd() < 0.6 ? 1 : 2];
+      col.push(c.r, c.g, c.b);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(col, 3));
+    starField = new THREE.Points(g, new THREE.PointsMaterial({
+      size: 1.5, sizeAttenuation: false, vertexColors: true,
+      transparent: true, opacity: 0.85, fog: false
+    }));
+    scene.add(starField);
+  }
+
   function buildDistrict(chapter) {
-    const tint = chapter.tint;
+    const tint = chapter.tint, mood = chapter.mood || {};
     const SKY = tint === "cool" ? 0x0b1830 : tint === "warm" ? 0x12203f : 0x0d1d3c;
     scene.background = new THREE.Color(SKY);
-    scene.fog = new THREE.Fog(SKY, 9, 52);
-    scene.add(new THREE.HemisphereLight(0x9fb3de, 0x0a1220, 1.0));
-    const d = new THREE.DirectionalLight(0xffe6a8, 0.5); d.position.set(-8, 16, 6); scene.add(d);
-    const moon = new THREE.Mesh(new THREE.SphereGeometry(3.4, 12, 12), new THREE.MeshBasicMaterial({ color: 0xf7e6a8 }));
+    const horizon = new THREE.Color(SKY).lerp(new THREE.Color(0x24406a), mood.horizonLift ?? 0.3);
+    scene.fog = new THREE.Fog(horizon, 11, 58);          // was (SKY, 9, 52) — gentler, lifted horizon glow
+    scene.add(new THREE.HemisphereLight(0x9fb3de, 0x0a1220, 1.0)); // light COUNT stays 2 (Hemisphere + Directional)
+    const d = new THREE.DirectionalLight(tint === "cool" ? 0xdfe8ff : 0xffe6a8, tint === "cool" ? 0.42 : 0.55);
+    d.position.set(-8, 16, 6); scene.add(d);
+    const moon = new THREE.Mesh(new THREE.SphereGeometry(3.4, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xf7e6a8, fog: false })); // fog:false — moon sits past fog-far
     moon.position.set(26, 22, -52); scene.add(moon);
-    seed = seedFrom(chapter.id);
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(5.2, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xf7e6a8, transparent: true, opacity: 0.12, fog: false, depthWrite: false }));
+    halo.position.copy(moon.position); scene.add(halo);
+    seed = seedFrom(chapter.id);                          // deterministic from here — decorative layout is stable per chapter
+    winMats = WIN_C.map(c => new THREE.MeshBasicMaterial({ color: c }));                        // recreated per load so
+    clothMats = CLOTH_C.map(c => new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide })); // clearScene disposes them
+    stars(mood.stars ?? 340);
 
     // ground + street strips
     box(0, 0, 60, 0.1, 60, 0x0f1d38).position.y = -0.05;
     const street = new THREE.MeshLambertMaterial({ color: 0x1b3157 });
     const sv = new THREE.Mesh(new THREE.PlaneGeometry(8, 60), street); sv.rotation.x = -Math.PI / 2; sv.position.y = 0.02; scene.add(sv);
     const sh = new THREE.Mesh(new THREE.PlaneGeometry(60, 8), street); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.02; scene.add(sh);
-    const plaza = new THREE.Mesh(new THREE.CircleGeometry(6, 24), new THREE.MeshLambertMaterial({ color: 0x203a63 }));
+    const plaza = new THREE.Mesh(new THREE.CircleGeometry(6, 24), new THREE.MeshLambertMaterial({ color: 0x203a63, emissive: 0x09121f }));
     plaza.rotation.x = -Math.PI / 2; plaza.position.y = 0.03; scene.add(plaza);
+    // moonlit wet-stone sheen hugging the plaza rim (additive, no z-write)
+    const sheen = new THREE.Mesh(new THREE.RingGeometry(5.4, 8.2, 28),
+      new THREE.MeshBasicMaterial({ color: 0x3fb7b7, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false }));
+    sheen.rotation.x = -Math.PI / 2; sheen.position.y = 0.035; scene.add(sheen);
 
     // four solid city blocks around the plaza (streets are the gaps)
     block(-11, -11, 7, 7); block(11, -11, 7, 7); block(-11, 11, 7, 7); block(11, 11, 7, 7);
     addLandmark(chapter.landmark);
     // outer backdrop ring (non-walkable beyond bounds, no colliders needed — bounds clamp)
-    for (let a = 0; a < Math.PI * 2; a += 0.5) box(Math.cos(a) * 28, Math.sin(a) * 28, 4, 5 + rnd() * 8, 4, wallC[(a * 3 | 0) % 4]);
+    for (let a = 0; a < Math.PI * 2; a += 0.5) {
+      const tall = rnd() < 0.22;                          // occasional slender spire (no new meshes)
+      box(Math.cos(a) * 28, Math.sin(a) * 28, tall ? 2.2 : 4, tall ? 14 + rnd() * 6 : 5 + rnd() * 8, tall ? 2.2 : 4, wallC[(a * 3 | 0) % 4]);
+    }
 
     // fountain in the plaza (small collider)
     box(0, 0, 2.2, 0.6, 2.2, 0x24406a).position.y = 0.3;
@@ -372,6 +426,7 @@ window.World = (function () {
       if (!paused && d < best) { best = d; current = t; }
       t.glow.position.y = 2.6 + Math.sin(now / 400 + t.pos.z) * 0.12;
     }
+    if (starField && !reducedMotion) starField.material.opacity = 0.72 + Math.sin(now / 1400) * 0.14;
 
     if (!paused && current) {
       promptText.textContent = (current.kind === "teacher" ? "Speak with " : "Examine ") + current.label;

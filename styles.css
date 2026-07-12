@@ -271,3 +271,8 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
   #touchControls{display:block}
   .look-hint{display:none}
 }
+/* procedural night polish: keep the two existing shade layers, add one ultra-faint teal horizon band (static — no animation) */
+#chapter .cinematic-shade{background:
+  radial-gradient(130% 100% at 50% 42%,transparent 46%,rgba(5,10,22,.7) 100%),
+  linear-gradient(180deg,rgba(5,10,22,.35) 0%,transparent 22%,transparent 62%,rgba(5,10,22,.72) 100%),
+  linear-gradient(180deg,transparent 55%,rgba(63,183,183,.05) 74%,transparent 92%)}

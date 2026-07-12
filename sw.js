@@ -1,5 +1,5 @@
 /* The Path of Light — service worker (offline app shell) */
-const CACHE = "pol-v5";
+const CACHE = "pol-v6";
 const CORE = [
   "./",
   "index.html",
