@@ -40,11 +40,11 @@ window.CONTENT = {
       teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "Tap the glowing golden marker to speak with the teacher.",
       clues: [
-        { key: "books",   title: "A copied folio", x: 23, y: 71, hint: "Manuscript stall",
+        { key: "books",   title: "A copied folio", x: 23, y: 71, hint: "Manuscript stall", prop: "stall",
           copy: "The margin names a person who passed the saying along — but gives no source for the claim. A useful lead, not proof." },
-        { key: "arch",    title: "A maker's mark", x: 75, y: 62, hint: "Courtyard mark",
+        { key: "arch",    title: "A maker's mark", x: 75, y: 62, hint: "Courtyard mark", prop: "stele",
           copy: "The same carved sign appears along the courier's route. Context can connect pieces of evidence without deciding if the report is true." },
-        { key: "pottery", title: "The potter's seal", x: 62, y: 84, hint: "Potter's seal",
+        { key: "pottery", title: "The potter's seal", x: 62, y: 84, hint: "Potter's seal", prop: "pots",
           copy: "A date on the seal places the object after one named person had already died. Time can quietly expose a broken link." }
       ],
       intro: [
@@ -91,11 +91,11 @@ window.CONTENT = {
       teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "Use Scholar's Focus to reveal each narrator, then judge them.",
       clues: [
-        { key: "adil", title: "The upright narrator", x: 20, y: 66, hint: "A known teacher",
+        { key: "adil", title: "The upright narrator", x: 20, y: 66, hint: "A known teacher", prop: "lectern",
           copy: "This narrator is remembered as just ('adil) and careful (dabit) — trustworthy (thiqa). Scholars of narrator-criticism (ilm al-rijal) recorded such judgements." },
-        { key: "dabit", title: "The forgetful narrator", x: 52, y: 78, hint: "An anxious merchant",
+        { key: "dabit", title: "The forgetful narrator", x: 52, y: 78, hint: "An anxious merchant", prop: "stall",
           copy: "Honest, but known to mix up wording as he aged. Precision (dabt) matters as much as honesty — a weak memory can bend a report." },
-        { key: "majhul", title: "The unknown link", x: 79, y: 60, hint: "A missing face",
+        { key: "majhul", title: "The unknown link", x: 79, y: 60, hint: "A missing face", prop: "figure",
           copy: "No one recorded who this person was (majhul — unknown). An unknown link means the chain cannot be relied upon, however fine the rest." }
       ],
       intro: [
@@ -142,11 +142,11 @@ window.CONTENT = {
       teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "",
       clues: [
-        { key: "death", title: "A recorded death", x: 26, y: 63, hint: "A dated register",
+        { key: "death", title: "A recorded death", x: 26, y: 63, hint: "A dated register", prop: "stele",
           copy: "The register fixes when the earlier narrator died. A transmission claimed after that date, from him directly, cannot stand — the two never met (no ittisal)." },
-        { key: "matn", title: "A word out of its time", x: 71, y: 58, hint: "The wording itself",
+        { key: "matn", title: "A word out of its time", x: 71, y: 58, hint: "The wording itself", prop: "lectern",
           copy: "The text (matn) mentions a thing that did not exist in that era — an anachronism. Content, not only chain, can expose a fabrication (wad')." },
-        { key: "trap", title: "An impressive endorsement", x: 49, y: 82, hint: "A flattering seal", decoy: true,
+        { key: "trap", title: "An impressive endorsement", x: 49, y: 82, hint: "A flattering seal", prop: "pots", decoy: true,
           copy: "A grand seal praising the report. Impressive — and irrelevant. Endorsement is not evidence; recording it as proof weakens your case." }
       ],
       intro: [

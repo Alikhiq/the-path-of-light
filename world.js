@@ -182,10 +182,56 @@ window.World = (function () {
     gateway(0, -19, "x"); gateway(19, 0, "z"); gateway(-19, 0, "z");
   }
 
-  function addMarker(kind, key, label, x, z, color) {
+  function propPart(group, geometry, material, x, y, z, rx = 0, ry = 0, rz = 0) {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x, y, z); mesh.rotation.set(rx, ry, rz); group.add(mesh); return mesh;
+  }
+
+  function addClueProp(group, prop, color) {
+    const wood = new THREE.MeshLambertMaterial({ color: 0x6f5234 });
+    const paper = new THREE.MeshLambertMaterial({ color: 0xd9c999, side: THREE.DoubleSide });
+    const stone = new THREE.MeshLambertMaterial({ color: 0x667086 });
+    const clay = new THREE.MeshLambertMaterial({ color: 0x9b6042 });
+    const robe = new THREE.MeshLambertMaterial({ color: 0x17233e });
+    const accent = new THREE.MeshBasicMaterial({ color });
+
+    if (prop === "stall") {
+      propPart(group, new THREE.BoxGeometry(1.7, 0.75, 0.7), wood, 0, 0.38, 0);
+      propPart(group, new THREE.BoxGeometry(0.7, 0.55, 0.62), wood, -0.42, 0.92, 0.02, 0, 0, -0.08);
+      propPart(group, new THREE.PlaneGeometry(0.7, 0.48), paper, 0.15, 0.86, -0.43, -1.05, 0, 0.08);
+      propPart(group, new THREE.PlaneGeometry(0.58, 0.42), paper, 0.54, 0.82, -0.45, -1.05, 0, -0.1);
+    } else if (prop === "lectern") {
+      propPart(group, new THREE.BoxGeometry(0.22, 1.25, 0.22), wood, 0, 0.63, 0, 0, 0, -0.13);
+      propPart(group, new THREE.BoxGeometry(1.05, 0.12, 0.7), wood, 0, 1.25, 0, 0.58, 0, 0);
+      propPart(group, new THREE.PlaneGeometry(0.78, 0.48), paper, 0, 1.37, -0.12, -1.02, 0, 0);
+      propPart(group, new THREE.CylinderGeometry(0.08, 0.08, 0.9, 8), accent, 0, 1.47, -0.34, 0, 0, Math.PI / 2);
+    } else if (prop === "pots") {
+      propPart(group, new THREE.CylinderGeometry(0.3, 0.42, 0.85, 7), clay, -0.38, 0.43, 0.08);
+      propPart(group, new THREE.CylinderGeometry(0.22, 0.34, 0.62, 7), clay, 0.32, 0.31, 0.2);
+      propPart(group, new THREE.CylinderGeometry(0.18, 0.28, 0.5, 7), accent, 0.05, 0.25, -0.38);
+    } else if (prop === "stele") {
+      propPart(group, new THREE.BoxGeometry(1.05, 0.28, 0.68), stone, 0, 0.14, 0);
+      propPart(group, new THREE.BoxGeometry(0.72, 1.85, 0.3), stone, 0, 1.15, 0);
+      propPart(group, new THREE.BoxGeometry(0.46, 0.08, 0.04), accent, 0, 1.34, -0.17);
+      propPart(group, new THREE.BoxGeometry(0.3, 0.08, 0.04), accent, 0, 1.06, -0.17);
+    } else if (prop === "figure") {
+      // A deliberately featureless hood and tapered robe: never add a face-facing surface.
+      propPart(group, new THREE.CylinderGeometry(0.28, 0.62, 1.8, 7), robe, 0, 0.9, 0);
+      propPart(group, new THREE.SphereGeometry(0.42, 7, 5, 0, Math.PI * 2, 0, Math.PI * 0.72), robe, 0, 1.88, 0);
+      propPart(group, new THREE.CylinderGeometry(0.46, 0.5, 0.08, 7), accent, 0, 0.06, 0);
+    } else {
+      propPart(group, new THREE.BoxGeometry(0.9, 0.85, 0.9), stone, 0, 0.43, 0);
+      propPart(group, new THREE.BoxGeometry(0.5, 0.08, 0.94), accent, 0, 0.72, 0);
+    }
+  }
+
+  function addMarker(kind, key, label, x, z, color, prop) {
     const g = new THREE.Group();
-    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 2.4, 8), new THREE.MeshBasicMaterial({ color }));
-    pillar.position.y = 1.2; g.add(pillar);
+    if (kind === "clue") addClueProp(g, prop, color);
+    else {
+      const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 2.4, 8), new THREE.MeshBasicMaterial({ color }));
+      pillar.position.y = 1.2; g.add(pillar);
+    }
     const glow = new THREE.Mesh(new THREE.SphereGeometry(0.5, 10, 10), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35 }));
     glow.position.y = 2.6; g.add(glow);
     g.position.set(x, 0, z); scene.add(g);
@@ -203,7 +249,7 @@ window.World = (function () {
     const slots = [[15, 0], [-15, 0], [0, -6], [0, 15]];   // east street, west street, plaza-north, south street
     chapter.clues.forEach((cl, i) => {
       const s = slots[i] || [i % 2 ? 6 : -6, 6];
-      addMarker("clue", cl.key, cl.hint, s[0], s[1], cl.decoy ? 0xe88a5a : 0x3fb7b7);
+      addMarker("clue", cl.key, cl.hint, s[0], s[1], cl.decoy ? 0xe88a5a : 0x3fb7b7, cl.prop);
     });
     player.pos.set(0, 1.6, 22); player.yaw = 0; player.pitch = 0;
     active = true;
