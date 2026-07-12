@@ -216,6 +216,13 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
   max-width:88vw;text-align:center;opacity:0;pointer-events:none;transition:.3s;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* update banner */
+.update-banner{position:fixed;left:50%;bottom:calc(80px + var(--safe-b));transform:translateX(-50%);z-index:29;
+  font-family:var(--sans);font-size:13px;font-weight:600;color:var(--navy);background:var(--gold);
+  border:1px solid var(--gold-d);border-radius:24px;padding:10px 18px;cursor:pointer;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);animation:banner-in .35s ease-out}
+@keyframes banner-in{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
 /* evidence pickup particle + muted control */
 .pip{position:fixed;bottom:34%;left:50%;width:8px;height:8px;border-radius:50%;background:var(--gold);
   box-shadow:0 0 8px var(--gold);pointer-events:none;z-index:40;animation:pip .85s ease-out forwards}
@@ -231,6 +238,7 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
   .speaker-seal{width:68px;height:68px;flex-basis:68px}
   .dialogue-box{margin:0 auto 0 6vw;max-width:560px}
   .toast{bottom:calc(90px + var(--safe-b))}
+  .update-banner{bottom:calc(90px + var(--safe-b))}
 }
 @media (min-width:1100px){
   .dialogue-box{margin-left:8vw}

@@ -285,7 +285,25 @@
 
   /* ------------------------------------------------------------------- pwa */
   function registerSW() {
-    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+    if (!("serviceWorker" in navigator) || !location.protocol.startsWith("http")) return;
+    navigator.serviceWorker.register("sw.js").then(reg => {
+      const showUpdate = () => {
+        const b = $("#updateBanner");
+        if (!b) return;
+        b.onclick = () => { b.disabled = true; location.reload(); };
+        b.classList.remove("hidden");
+      };
+      // update already downloaded before this ran (page loaded while a worker was waiting)
+      if (reg.waiting && navigator.serviceWorker.controller) showUpdate();
+      // update arrives while the page is open
+      reg.addEventListener("updatefound", () => {
+        const w = reg.installing; if (!w) return;
+        w.addEventListener("statechange", () => {
+          // controller check = this is an UPDATE, not the first-ever install
+          if (w.state === "installed" && navigator.serviceWorker.controller) showUpdate();
+        });
+      });
+    }).catch(() => {});
   }
   let deferredPrompt = null;
   function wireInstall() {
