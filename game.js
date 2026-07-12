@@ -144,8 +144,6 @@
   function openDialogue(list, phase) {
     state.dialogue = list; state.phase = phase; state.step = 0;
     const ch = state.chapter;
-    $("#dPortrait").src = ch.teacher.portrait;
-    $("#dPortrait").alt = ch.teacher.name;
     $("#dPlace").textContent = ch.teacher.role;
     $("#dName").textContent = ch.teacher.name;
     $("#dialogue").classList.remove("hidden");

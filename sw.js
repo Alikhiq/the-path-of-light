@@ -1,5 +1,5 @@
 /* The Path of Light — service worker (offline app shell) */
-const CACHE = "pol-v2";
+const CACHE = "pol-v3";
 const CORE = [
   "./",
   "index.html",
@@ -28,11 +28,24 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
-  e.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
-      return res;
-    }).catch(() => caches.match("index.html")))
-  );
+  const sameOrigin = new URL(req.url).origin === location.origin;
+  if (sameOrigin) {
+    // network-first: returning players always get the latest build; cache is offline fallback
+    e.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        return res;
+      }).catch(() => caches.match(req).then(h => h || caches.match("index.html")))
+    );
+  } else {
+    // cache-first for CDN assets (three.js, fonts)
+    e.respondWith(
+      caches.match(req).then(hit => hit || fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        return res;
+      }))
+    );
+  }
 });

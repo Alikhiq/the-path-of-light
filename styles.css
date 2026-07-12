@@ -168,8 +168,7 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
 /* dialogue */
 .dialogue{position:fixed;inset:0;z-index:22;display:flex;flex-direction:column;justify-content:flex-end;
   background:linear-gradient(180deg,transparent 30%,rgba(4,8,18,.6) 70%);padding-bottom:calc(20px + var(--safe-b))}
-.speaker-portrait{width:58px;height:58px;flex:0 0 58px;border-radius:12px;object-fit:cover;object-position:50% 20%;
-  border:1px solid var(--gold);filter:grayscale(.4) saturate(.85) contrast(1.08) brightness(.9);background:var(--navy2)}
+.speaker-seal{width:56px;height:56px;flex:0 0 56px;display:block}
 .speaker-id{display:flex;flex-direction:column;min-width:0}
 .dialogue-box{margin:0 12px;background:rgba(9,17,32,.92);border:1px solid var(--panel-b);border-radius:18px;
   padding:18px 18px 16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -223,7 +222,7 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
   .hub-intro{font-size:16px}
   .mission-panel{max-width:320px}
   .opening-card h2{font-size:56px}
-  .speaker-portrait{width:74px;height:74px;flex-basis:74px}
+  .speaker-seal{width:68px;height:68px;flex-basis:68px}
   .dialogue-box{margin:0 auto 0 6vw;max-width:560px}
   .toast{bottom:calc(90px + var(--safe-b))}
 }
