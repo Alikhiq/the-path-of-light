@@ -1,39 +1,33 @@
 # RESUME → Claude — World & Atmosphere pass
-_Updated: 2026-07-12 · Agent: GPT-5.6 · Branch: world-pass · Last commit: 98df904_
+_Updated: 2026-07-12 · Branch: world-pass · Status: COMPLETE (ready to merge)_
+
+> Task A + start of B done by GPT-5.6; B verified & committed, C + D implemented by Claude
+> after GPT hit its usage limit. All four tasks done, verified, committed on `world-pass`.
 
 ## Status
 | Task | State | % | Notes |
 |------|-------|---|-------|
-| A. Distinct clue props | done | 100 | Five flat prop builders; each chapter uses three distinct silhouettes. |
-| B. Per-chapter districts | not started | 0 | Next task. |
-| C. Ambient audio | not started | 0 | Awaiting Task B. |
-| D. Dialogue juice | not started | 0 | Awaiting Task C. |
+| A. Distinct clue props | done | 100 | GPT-5.6 (`98df904`). Five flat prop builders; 3 distinct silhouettes per chapter. |
+| B. Per-chapter districts | done | 100 | GPT-5.6 work, verified + committed by Claude (`31c630e`). seedFrom(id), footprint jitter, 3 landmarks (library/court/observatory). |
+| C. Ambient audio | done | 100 | Claude (`2d711dd`). audio.js WebAudio bed + chime + tick; mute in quick-nav, persisted; silent fallback. |
+| D. Dialogue juice | done | 100 | Claude (`2d711dd`). Typewriter (click/Enter skip), count-up, evidence particle; reduced-motion aware. |
 
-## What I did
-- Task A (`98df904`): added optional `clue.prop` metadata in `content.js` and low-poly stall, lectern, pots, stele, figure, and generic fallback builders in `world.js`.
-- Preserved marker labels, proximity callbacks, focus visibility, and teal/orange glow behavior. The figure is a featureless tapered robe and hood with no face-facing detail.
-- Validated JavaScript syntax, diff whitespace, allowed/unique props per chapter, and chapter 1 rendering in the focused in-app browser; no browser console warnings/errors.
+## What was done
+- **A (GPT):** `clue.prop` metadata in content.js; stall/lectern/pots/stele/figure/generic builders in world.js. Figure is a featureless robed silhouette (no face). Labels/proximity/focus/glow preserved.
+- **B (GPT, verified by Claude):** `buildDistrict(chapter)` seeds RNG from `chapter.id`; building jitter + size variation; three landmarks placed at the north boundary or atop already-solid blocks so clue slots + the street cross are unchanged. Verified all 3 chapters: 4 markers each, render, `node --check` clean, no console errors.
+- **C (Claude):** `audio.js` — filtered-noise wind bed (per-tint lowpass, slow LFO), rising-triad chime on evidence, faint tick on dialogue advance. Gesture-gated (created on Enter-the-city / first tap), mute button in `.quick-nav` persisted to `pol-muted-v1`, degrades silently with no WebAudio. Hooked in game.js (startBed on enter, stopBed on back/complete, chime+burst on real clue, tick on choice).
+- **D (Claude):** typewriter reveal for `#dText` with click/Enter skip; insight/trust count-up in `syncHud`; gold particle burst on pickup. All guarded by `prefers-reduced-motion`.
+- Removed the temporary `work/world-test.html` QA harness (was never meant to ship).
 
-## What's LEFT (in order, precise)
-1. Start Task B by changing `buildDistrict(tint)` to receive the chapter, derive its RNG seed from `chapter.id`, and add the three reachable, chapter-specific landmarks without obstructing clue slots or the teacher.
-2. Implement Task C environmental WebAudio and persistent mute control.
-3. Implement Task D typewriter, stat count-up, and reduced-motion-aware evidence particle.
-4. Run the complete desktop/mobile/reduced-motion chapter loop and final draw-call/console checks.
+## Verification
+- `node --check` clean on world.js, content.js, game.js, audio.js.
+- All 3 districts load with 4 markers, distinct landmarks, no console errors.
+- Typewriter types + skips to full; mute toggles both ways; count-up reaches target; particles + chime fire without error.
 
-## How to run + verify current state
-- Run `python -m http.server 8080` in the repo root and open http://localhost:8080 in a focused tab.
-- Enter the city → Sequence 01 → choose the correct first response → “I will look before I judge.” The manuscript stall, courtyard stele, and pottery cluster render at their existing marker positions with floating labels.
-- Use WASD + E (desktop) or joystick + EXAMINE (touch) to verify the unchanged proximity callbacks; toggle Scholar's Focus to verify marker reveal behavior.
-- Run `node --check world.js`, `node --check content.js`, and `git diff --check` for static validation.
+## What's LEFT
+1. Merge `world-pass` → `main` and `docs-launch` → `main`, then deploy (git push; GitHub Pages).
+2. Future work is in `docs/roadmap.md` (interactive sanad diagram is the top item, reserved for Claude).
 
-## Decisions I made (and why)
-- Assigned three different prop types within every chapter so local clue silhouettes never repeat, while reusing prop vocabulary across chapters to keep the mesh/draw-call cost restrained.
-- Kept interaction props decorative (no new colliders) so their existing street/plaza slots remain reachable and the gameplay collision contract does not change.
-- Kept the colored interaction signal on the glow and one small prop accent; the main forms use muted wood, clay, stone, paper, or navy materials so decoy orange remains legible without recoloring whole artifacts.
-
-## Blockers / open questions for Claude
-- None.
-
-## Guardrail / content watch (double-check these)
-- No educational, source, dialogue, guardrail, or hub-note wording changed; only `prop` fields were added to clue objects.
-- The `figure` prop is intentionally faceless: tapered seven-sided robe, partial-sphere hood, and base accent only. Do not add a face plane, eyes, or features during later polishing.
+## Guardrail / content watch
+- No educational, source, dialogue, guardrail, or hub-note wording changed. Only additive fields (`clue.prop`, `chapter.landmark`).
+- The `figure` prop and all human representation remain faceless. Audio is environmental only (no music) and muteable.
