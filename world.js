@@ -284,6 +284,7 @@ window.World = (function () {
     // lamps along the streets + gateways at the three explored entrances
     lamp(3.3, 6); lamp(-3.3, -6); lamp(6, 3.3); lamp(-6, -3.3); lamp(3.3, -6); lamp(-3.3, 6);
     gateway(0, -19, "x"); gateway(19, 0, "z"); gateway(-19, 0, "z");
+    ambientFigures();                                     // نūر light-beings inhabit the streets — the city is never empty
   }
 
   function propPart(group, geometry, material, x, y, z, rx = 0, ry = 0, rz = 0) {
@@ -345,7 +346,9 @@ window.World = (function () {
   }
 
   /* ---- The Circle of Stillness (halaqa) — a place, not a chapter ---- */
-  function nurFigure(x, z, facing) {
+  // An ordinary person rendered as light — faceless, dignified. (Sacred figures
+  // are NEVER walkable NPCs; this is the mundane crowd, the game's visual language.)
+  function nurFigure(x, z, facing, scale) {
     const g = new THREE.Group();
     const light = new THREE.MeshBasicMaterial({ color: 0xffe6a8 });
     const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.6, 1.1, 8), light);
@@ -356,7 +359,14 @@ window.World = (function () {
       new THREE.MeshBasicMaterial({ color: 0xf2cd6a, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false }));
     halo.position.y = 0.85; g.add(halo);
     halaqaGlows.push({ m: halo, base: 0.15, ph: x + z });          // slow breathing = quiet life
-    g.position.set(x, 0, z); g.rotation.y = facing; scene.add(g); return g;
+    g.position.set(x, 0, z); g.rotation.y = facing; if (scale) g.scale.setScalar(scale); scene.add(g); return g;
+  }
+
+  // A few light-beings standing in the streets so Baghdad is inhabited, never empty.
+  // Decoration only: no collider (you pass through light), placed on walkable bands.
+  function ambientFigures() {
+    const spots = [[3.2, 9], [-3.2, -9], [9, 3.2], [-9, -3.2], [3, -3], [-3, 3], [2.5, 14], [-2.5, -13]];
+    for (const s of spots) if (rnd() < 0.62) nurFigure(s[0], s[1], rnd() * Math.PI * 2, 0.9 + rnd() * 0.25);
   }
 
   function buildHalaqa() {
@@ -499,6 +509,7 @@ window.World = (function () {
     }
     if (starField && !reducedMotion) starField.material.opacity = 0.72 + Math.sin(now / 1400) * 0.14;
     if (mode === "halaqa" && !reducedMotion) for (const g of halaqaGlows) {
+      if (seated && g.ph !== undefined) g.ph += (0 - g.ph) * dt * 0.033;   // seated: the circle drifts into one shared breath (wordless acknowledgment)
       if (g.m) g.m.material.opacity = g.base * (0.72 + 0.42 * (0.5 + 0.5 * Math.sin(now / 1700 + (g.ph || 0))));
       else if (g.mesh) g.mesh.scale.setScalar(1 + Math.sin(now / 950) * 0.06);
     }

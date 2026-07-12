@@ -263,7 +263,11 @@
       state.sitStart = Date.now();
       state._sitTimer = setInterval(() => { accrueSit(); state.sitStart = Date.now(); }, 15000);  // save presence even if they never rise
       if (A()) A().stillOn(); openStill();
-    } else { accrueSit(); if (A()) A().stillOff(); $("#stillPanel").classList.add("hidden"); }
+    } else {
+      accrueSit(); if (A()) A().stillOff(); clearTimeout(stillHushT);
+      const panel = $("#stillPanel"); panel.classList.remove("hushed"); panel.classList.add("leaving");
+      setTimeout(() => { panel.classList.add("hidden"); panel.classList.remove("leaving"); }, 1200);   // ease the rise — hold a breath
+    }
   }
   function accrueSit() {
     if (!state.sitStart) return;
@@ -271,7 +275,7 @@
     state.sitStart = 0; save();
   }
 
-  let stillIdx = 0;
+  let stillIdx = 0, stillHushT = 0;
   function renderStillLine(h) {
     const a = h.ambient[stillIdx % h.ambient.length];
     $("#stillSpeaker").textContent = a.who;
@@ -280,8 +284,13 @@
   function baseChips(h) {
     const chips = $("#stillChoices"); chips.innerHTML = "";
     const mk = (label, fn) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.onclick = fn; chips.appendChild(b); };
-    mk("Sit in silence", () => { stillIdx++; renderStillLine(h); if (A()) A().tick(); });
-    mk("Offer an intention", () => offerIntention(h));
+    mk("Sit in silence", () => {                                 // the one choice that promises nothing now delivers real dead air
+      const panel = $("#stillPanel");
+      panel.classList.add("hushed"); $("#stillSpeaker").textContent = ""; $("#stillLine").textContent = "";
+      clearTimeout(stillHushT);
+      stillHushT = setTimeout(() => { stillIdx++; renderStillLine(h); panel.classList.remove("hushed"); }, 4200);
+    });
+    mk("Offer an intention", () => { clearTimeout(stillHushT); $("#stillPanel").classList.remove("hushed"); offerIntention(h); });
     mk("Rise", () => World.rise());
   }
   function offerIntention(h) {
@@ -300,12 +309,12 @@
   }
 
   function exitWorld() {
-    clearInterval(state._sitTimer);
+    clearInterval(state._sitTimer); clearTimeout(stillHushT);
     if (state.seated) accrueSit();
     if (window.World) World.unload();
     if (A()) { A().stillOff(); A().stopBed(); }
     state.inHalaqa = false; state.seated = false;
-    $("#stillPanel").classList.add("hidden");
+    $("#stillPanel").classList.add("hidden"); $("#stillPanel").classList.remove("hushed", "leaving");
     save();
   }
 
@@ -369,11 +378,11 @@
     const m = state.mirror, mr = C.mirror || {}, obs = [];
     if (m.care > 0) obs.push(["Care", `You opened the glossary ${m.care} time${m.care > 1 ? "s" : ""} to understand a word before moving on.`]);
     const total = m.read + m.skip;
-    if (total > 0) obs.push(["Patience", m.read >= m.skip
-      ? `You let ${m.read} of ${total} lines finish before choosing — unhurried.`
-      : `You often moved quickly through the words — ${m.read} of ${total} read to the end.`]);
-    if (m.presenceSec > 0) { const mm = Math.floor(m.presenceSec / 60), ss = m.presenceSec % 60;
-      obs.push(["Presence", `You have sat in the circle for ${mm ? mm + "m " : ""}${ss}s of quiet.`]); }
+    if (total > 0) obs.push(["Patience", `You read ${m.read} of ${total} lines to the end.`]);   // plain — the Mirror never editorializes
+    if (m.presenceSec > 0) {
+      const p = m.presenceSec < 30 ? "a few breaths" : m.presenceSec < 180 ? "a little while" : m.presenceSec < 900 ? "a while" : "a long while";
+      obs.push(["Presence", `You have sat in the circle for ${p}.`]);   // graduated language — no number to farm
+    }
     if (state.completed.size) obs.push(["The path", `You have walked ${state.completed.size} station${state.completed.size > 1 ? "s" : ""} of the way.`]);
     const body = obs.length
       ? obs.map(([k, v]) => `<div class="record"><span>${k}</span><p>${v}</p></div>`).join("")
