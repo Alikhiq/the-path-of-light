@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>The Path of Light — Signable Review Form</title>
+<style>
+  :root{--navy:#0a1730;--panel:#0d1d3c;--line:#20365f;--gold:#f2cd6a;--teal:#3fb7b7;--ink:#f4e9c8;--muted:#9fb0cf;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--navy);color:var(--ink);font:15px/1.55 system-ui,Segoe UI,sans-serif;padding:24px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{font-size:24px;color:var(--gold);margin:0 0 4px}
+  .lead{color:var(--muted);font-size:13.5px;margin:0 0 18px}
+  .bar{position:sticky;top:0;background:var(--navy);padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;align-items:center;z-index:5;margin-bottom:18px}
+  .bar b{color:var(--gold)}
+  button{font:inherit;font-weight:600;color:var(--navy);background:var(--gold);border:0;border-radius:22px;padding:9px 18px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .who{display:grid;grid-template-columns:1fr 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:22px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:4px}
+  input[type=text],textarea{width:100%;font:inherit;color:var(--ink);background:#091120;border:1px solid var(--line);border-radius:8px;padding:9px}
+  textarea{resize:vertical;min-height:44px}
+  h2{font-size:15px;color:var(--teal);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--line);padding-bottom:6px;margin:26px 0 12px}
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .item .id{font:600 12px/1 monospace;color:var(--gold);background:#091120;border:1px solid var(--line);border-radius:6px;padding:3px 7px;margin-right:8px}
+  .claim{font-weight:600}
+  .check{font-size:13px;color:var(--muted);margin:4px 0 10px}
+  .status{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .status label{display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:5px 12px;margin:0;cursor:pointer}
+  .status input{accent-color:var(--gold)}
+  .verdict{background:var(--panel);border:1px solid var(--gold);border-radius:12px;padding:18px;margin:24px 0}
+  .sign{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .note{font-size:12px;color:var(--muted);margin-top:26px;border-top:1px solid var(--line);padding-top:12px}
+  @media(max-width:640px){.who,.sign{grid-template-columns:1fr}}
+  @media print{body{background:#fff;color:#111;padding:0}.bar{display:none}.item,.who,.verdict{border-color:#bbb;background:#fff;break-inside:avoid}h1{color:#000}h2{color:#333}.id{color:#000;background:#eee}.check,.lead,label{color:#555}input,textarea{border-color:#bbb}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The Path of Light — Review &amp; Sign-off</h1>
+  <p class="lead">This game teaches the <em>method</em> of checking a report — it never grades a real hadith. Review each claim below, mark it, add notes, then sign at the bottom. Your entries save automatically in this browser; use <b>Print / Save PDF</b> to keep a signed copy.</p>
+
+  <div class="bar">
+    <span>Status: <b id="prog">0 / 0 reviewed</b></span>
+    <button onclick="window.print()">Print / Save PDF</button>
+    <button class="ghost" onclick="if(confirm('Clear all entries on this device?')){localStorage.removeItem(KEY);location.reload();}">Reset</button>
+    <span style="color:var(--muted);font-size:12px">Saved automatically ✓</span>
+  </div>
+
+  <div class="who">
+    <div><label>Reviewer name</label><input type="text" data-k="rev_name" placeholder="Full name"></div>
+    <div><label>Credential / institution</label><input type="text" data-k="rev_cred" placeholder="e.g. seminary, ijaza, role"></div>
+    <div><label>Date</label><input type="text" data-k="rev_date" placeholder="YYYY-MM-DD"></div>
+    <div><label>Chapters reviewed</label><input type="text" data-k="rev_chaps" placeholder="e.g. 1, 2, 3 + foundational"></div>
+  </div>
+
+  <div id="list"></div>
+
+  <div class="verdict">
+    <h2 style="margin-top:0;border:0;color:var(--gold)">Overall verdict &amp; signature</h2>
+    <div class="status" id="verdict">
+      <label><input type="radio" name="verdict" value="approve"> Approve</label>
+      <label><input type="radio" name="verdict" value="approve-fixes"> Approve with fixes</label>
+      <label><input type="radio" name="verdict" value="hold"> Hold</label>
+    </div>
+    <label>Conditions / required fixes</label>
+    <textarea data-k="conditions" placeholder="List anything that must change before public release"></textarea>
+    <div class="sign">
+      <div><label>Signature (type your name)</label><input type="text" data-k="sig_name" placeholder="Sign here"></div>
+      <div><label>Date signed</label><input type="text" data-k="sig_date" placeholder="YYYY-MM-DD"></div>
+    </div>
+  </div>
+
+  <p class="note">Two independent qualified Twelver Shia reviewers are recommended before public launch. Corrections go into <code>content.js</code> (quoted text only) — see <code>scholar-onboarding.md</code>. This form is a personal/working record; it lives in your browser until you print or save it.</p>
+</div>
+
+<script>
+const KEY = "pol-review-v1";
+const store = JSON.parse(localStorage.getItem(KEY) || "{}");
+const ITEMS = [
+ {s:"A · Foundational (across chapters)"},
+ {id:"F1", t:"Qur'an 49:6 (al-Hujurat) as a basis for verifying reports", c:"Surah/ayah correct; framed as “commonly discussed,” not a ruling."},
+ {id:"F2", t:"Most narrations of the Ahl al-Bayt reported from Imam Ja'far al-Sadiq (d. 148 AH)", c:"Death year; the “most narrations” claim accurate or qualified."},
+ {id:"F3", t:"Narrator terms: 'adil, dabit, thiqa, majhul", c:"Definitions + transliteration correct for Twelver ilm al-rijal."},
+ {id:"F4", t:"Grades sahih / hasan / muwaththaq depend on the narrators in the chain", c:"Twelver definitions; muwaththaq correctly characterized; not conflated with Sunni usage."},
+ {id:"F5", t:"Terms: ittisal, wad', sanad, matn, dabt", c:"Each correctly defined and applied."},
+ {id:"F6", t:"Hub framing: teach the method, never put words on the Imams", c:"Respectful and accurate."},
+ {s:"B · Chapter 1 — The Unbroken Chain"},
+ {id:"C1.1", t:"A wise-sounding saying is not enough to attribute to Imam al-Sadiq", c:"Naming the Imam as the example (no saying placed in his mouth) acceptable?"},
+ {id:"C1.2", t:"Folio names a transmitter but gives no source — a lead, not proof", c:"Method sound."},
+ {id:"C1.3", t:"Recurring maker's mark gives context without deciding truth", c:"Method sound."},
+ {id:"C1.4", t:"A date placing an object after a person died exposes a broken link", c:"Chronology logic sound."},
+ {id:"C1.5", t:"Correct outcome: record evidence, consult qualified scholars", c:"Defers grading to scholars."},
+ {id:"C1.6", t:"Source notes: sanad+matn; Qur'an 49:6; why al-Sadiq", c:"See F1, F2."},
+ {id:"C1.7", t:"Guardrail string (fictional; do not authenticate with the game alone)", c:"Adequate?"},
+ {s:"C · Chapter 2 — Names in the Chain"},
+ {id:"C2.1", t:"A chain's strength is decided by its weakest link", c:"Principle correct."},
+ {id:"C2.2", t:"Just + careful = thiqa; recorded by ilm al-rijal", c:"Correct (F3)."},
+ {id:"C2.3", t:"Honest but weak memory — precision (dabt) matters as much as honesty", c:"Correct."},
+ {id:"C2.4", t:"An unknown link (majhul) makes the chain unreliable “however fine the rest”", c:"Is a single majhul always fatal across Twelver positions? Soften/note disagreement?"},
+ {id:"C2.5", t:"Unknown ≠ dishonest; verdict: “reliability is not established”", c:"Precise and fair?"},
+ {id:"C2.6", t:"Source notes: rijal; grades rest on the chain; unknown ≠ dishonest", c:"See F3, F4."},
+ {id:"C2.7", t:"Guardrail: simplified teaching examples, not verdicts on real figures", c:"Sufficient?"},
+ {s:"D · Chapter 3 — Broken by Time"},
+ {id:"D3.1", t:"Look to whether narrators overlapped in life, not reputation or beauty", c:"Principle correct."},
+ {id:"D3.2", t:"A death date makes a claimed direct transmission after it impossible (no ittisal)", c:"Logic sound (F5)."},
+ {id:"D3.3", t:"An anachronism in the text (matn) can expose fabrication (wad')", c:"Matn-criticism correctly represented."},
+ {id:"D3.4", t:"An endorsement seal is impressive but irrelevant — not evidence (decoy)", c:"Pedagogy sound."},
+ {id:"D3.5", t:"Impossible chain ⇒ the report is fabricated; verdict named with evidence", c:"Is the leap from impossible-isnad to proven-forgery stated carefully?"},
+ {id:"D3.6", t:"Source notes: ittisal; matn can betray forgery; endorsement ≠ proof", c:"See F5."},
+ {id:"D3.7", t:"Guardrail: a constructed puzzle, not a claim about any real narration", c:"Sufficient?"}
+];
+
+const list = document.getElementById("list");
+let total = 0;
+ITEMS.forEach(it => {
+  if (it.s) { const h = document.createElement("h2"); h.textContent = it.s; list.appendChild(h); return; }
+  total++;
+  const el = document.createElement("div"); el.className = "item";
+  el.innerHTML =
+    '<div><span class="id">'+it.id+'</span><span class="claim">'+it.t+'</span></div>'+
+    '<div class="check">Check: '+it.c+'</div>'+
+    '<div class="status">'+
+      ['OK','Fix','Discuss'].map(v =>
+        '<label><input type="radio" name="'+it.id+'_st" value="'+v+'"> '+v+'</label>').join('')+
+    '</div>'+
+    '<textarea data-k="'+it.id+'_note" placeholder="Notes / correction for '+it.id+'"></textarea>';
+  list.appendChild(el);
+});
+
+function progress(){
+  let done = 0;
+  ITEMS.forEach(it => { if (it.id && store[it.id+"_st"]) done++; });
+  document.getElementById("prog").textContent = done + " / " + total + " reviewed";
+}
+
+// restore
+document.querySelectorAll("[data-k]").forEach(el => { if (store[el.dataset.k] != null) el.value = store[el.dataset.k]; });
+document.querySelectorAll("input[type=radio]").forEach(r => { if (store[r.name] === r.value) r.checked = true; });
+
+// autosave
+function save(){ localStorage.setItem(KEY, JSON.stringify(store)); }
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (el.type === "radio") store[el.name] = el.value;
+  else if (el.dataset.k) store[el.dataset.k] = el.value;
+  save(); progress();
+});
+progress();
+</script>
+</body>
+</html>
