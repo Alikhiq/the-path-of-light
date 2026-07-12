@@ -85,6 +85,7 @@
     $("#objectiveText").textContent = ch.objective;
     $("#brandSeal").textContent = C.brandWord;
     $("#chapter").className = "screen diff-" + ch.difficulty;
+    $("#chainBtn").classList.toggle("hidden", !ch.chain);
 
     const need = requiredClues(ch).length;
     $("#evidenceCount").textContent = `Evidence 0 / ${need}`;
@@ -208,13 +209,68 @@
   }
 
   /* -------------------------------------------------------------- casebook */
+  // Sanad (chain-of-narrators) diagram: a static, string-built inline SVG of
+  // geometric seals (no faces). Nodes tied to found clues light up; the weak
+  // link carries a dashed amber ring and reveals the chapter's EXISTING teaching.
+  function renderChain(ch) {
+    const chain = ch.chain;
+    if (!chain) return `<p class="sheet-intro">No chain is recorded for this chapter yet.</p>`;
+    const W = 320, cx = W / 2, GAP = 98, TOP = 44;
+    const H = TOP + GAP * (chain.nodes.length - 1) + 72;
+    const yOf = i => TOP + i * GAP;
+    const edges = chain.nodes.slice(0, -1).map((_, i) =>
+      `<line class="chain-edge${chain.broken === i ? " broken" : ""}" x1="${cx}" y1="${yOf(i) + 28}" x2="${cx}" y2="${yOf(i + 1) - 28}"${chain.broken === i ? ' stroke-dasharray="4 6"' : ""}/>`
+    ).join("");
+    const nodes = chain.nodes.map((n, i) => {
+      const lit = !n.clue || state.found.has(n.clue);
+      const y = yOf(i);
+      return `<g class="chain-node ${lit ? "lit" : "dim"}${i === chain.weak ? " weak" : ""}" data-node="${i}" tabindex="0" role="button" aria-label="${n.label}">` +
+        (i === chain.weak ? `<circle class="weak-ring" cx="${cx}" cy="${y}" r="31"/>` : "") +
+        `<rect class="seal-bg" x="${cx - 22}" y="${y - 22}" width="44" height="44" rx="10"/>` +
+        `<path class="seal-mark" d="M${cx} ${y - 13} L${cx + 13} ${y} L${cx} ${y + 13} L${cx - 13} ${y} Z"/>` +
+        `<circle class="seal-dot" cx="${cx}" cy="${y}" r="2.6"/>` +
+        `<text class="chain-label" x="${cx}" y="${y + 42}" text-anchor="middle">${n.label}</text>` +
+        `</g>`;
+    }).join("");
+    return `<p class="sheet-intro">${chain.heading}</p>` +
+      `<svg class="chain-svg" viewBox="0 0 ${W} ${H}" role="group" aria-label="Chain of narrators — tap a seal to weigh the link">${edges}${nodes}</svg>` +
+      `<div id="chainDetail" class="record chain-detail hidden"></div>` +
+      `<div class="source-note">${ch.guardrail}</div>`;
+  }
+
+  function wireChain(ch) {
+    const chain = ch.chain; if (!chain) return;
+    const gate = chain.weakRequires || (chain.nodes[chain.weak] && chain.nodes[chain.weak].clue);
+    const show = i => {
+      const n = chain.nodes[i], isWeak = i === chain.weak;
+      const lit = !n.clue || state.found.has(n.clue);
+      const unlocked = !gate || state.found.has(gate);
+      const body = isWeak
+        ? (unlocked ? chain.why : chain.lockedWhy)
+        : (lit ? n.trait : "Undiscovered. Walk the street and examine the markers to learn about this link.");
+      const el = $("#chainDetail");
+      el.innerHTML = `<span>${isWeak ? "Weak link" : `Link ${i + 1} of ${chain.nodes.length}`}</span>` +
+        `<strong>${n.label}</strong><p>${body}</p>`;
+      el.classList.remove("hidden");
+      el.classList.toggle("is-weak", isWeak && unlocked);
+      if (isWeak && unlocked && A()) A().tick();
+    };
+    $$("#sheetBody .chain-node").forEach(g => {
+      const i = +g.dataset.node;
+      g.onclick = () => show(i);
+      g.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(i); } };
+    });
+  }
+
   function openCasebook(type) {
     const ch = state.chapter || C.chapters[0];
-    const isSources = type === "sources";
-    $("#sheetEyebrow").textContent = isSources ? "Method & source notes" : "Investigation record";
-    $("#sheetTitle").textContent = isSources ? "How reports are checked" : ch.title;
+    const isSources = type === "sources", isChain = type === "chain";
+    $("#sheetEyebrow").textContent = isChain ? "Chain of narrators · sanad" : isSources ? "Method & source notes" : "Investigation record";
+    $("#sheetTitle").textContent = isChain ? "The Chain" : isSources ? "How reports are checked" : ch.title;
     let html;
-    if (isSources) {
+    if (isChain) {
+      html = renderChain(ch);
+    } else if (isSources) {
       html = `<p class="sheet-intro">This story teaches source literacy — not independent hadith grading or religious rulings.</p>` +
         ch.sources.map(s => `<div class="record"><span>${s.label}</span><p>${s.note}</p></div>`).join("") +
         `<div class="source-note">${ch.guardrail}</div>`;
@@ -229,6 +285,7 @@
         `<div class="source-note">A fictional narrative built around real verification principles. Do not use the game alone to authenticate a report.</div>`;
     }
     $("#sheetBody").innerHTML = html;
+    if (isChain) wireChain(ch);
     $("#casebook").classList.remove("hidden");
   }
   const closeCasebook = () => $("#casebook").classList.add("hidden");
@@ -319,6 +376,7 @@
     $("#focusBtn").onclick = () => setFocus();
     $("#journalBtn").onclick = () => openCasebook("journal");
     $("#sourcesBtn").onclick = () => openCasebook("sources");
+    $("#chainBtn").onclick = () => openCasebook("chain");
     $("#controlsBtn").onclick = () => toast("Click to look · WASD / joystick to walk · E or tap to interact · Esc to close");
     const updateSound = m => { $("#soundBtn").classList.toggle("muted", m); $("#soundBtn").setAttribute("aria-pressed", String(!m)); $("#soundLabel").textContent = m ? "Muted" : "Sound"; };
     $("#soundBtn").onclick = () => { if (A()) { A().init(); A().resume(); updateSound(A().toggleMute()); } };

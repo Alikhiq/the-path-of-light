@@ -143,6 +143,7 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
 .quick-nav button:hover,.quick-nav button:active{background:rgba(242,205,106,.14)}
 .quick-nav span{font-size:17px;color:var(--gold)}
 .quick-nav small{font-family:var(--mono);font-size:8.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+@media (max-width:420px){.quick-nav button{padding:7px 10px}}
 
 /* ------------------------------------------------------------ OVERLAYS */
 .overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:24px;
@@ -199,6 +200,24 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
 .record strong{display:block;font-family:var(--serif);font-size:17px;color:var(--paper);margin:3px 0 4px}
 .record p{font-size:13px;line-height:1.55;color:rgba(246,239,220,.76)}
 .source-note{margin-top:14px;font-size:11.5px;line-height:1.55;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+
+/* sanad chain diagram */
+.chain-svg{display:block;width:100%;max-width:340px;margin:0 auto 14px;overflow:visible}
+.chain-edge{stroke:var(--line);stroke-width:1.5}
+.chain-edge.broken{stroke:#e88a5a;opacity:.85}
+.chain-node{cursor:pointer;outline:none}
+.chain-node:focus-visible .seal-bg{stroke:var(--gold);stroke-width:2.5}
+.chain-node .seal-bg{fill:rgba(13,29,60,.85);stroke:var(--line);stroke-width:1.5;transition:stroke .2s}
+.chain-node .seal-mark{fill:none;stroke:var(--gold);stroke-width:1.6}
+.chain-node .seal-dot{fill:var(--gold)}
+.chain-node .chain-label{fill:var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:.4px}
+.chain-node.dim{opacity:.35}
+.chain-node.lit .seal-bg{stroke:var(--gold)}
+.chain-node.lit .seal-mark{filter:drop-shadow(0 0 6px rgba(242,205,106,.55))}
+.chain-node .weak-ring{fill:none;stroke:#e88a5a;stroke-width:1.5;stroke-dasharray:3 5;animation:chainPulse 2.4s ease-in-out infinite}
+@keyframes chainPulse{0%,100%{opacity:.75}50%{opacity:.25}}
+.chain-detail.is-weak{border-color:#e88a5a}
+.chain-detail.is-weak span{color:#e88a5a}
 
 /* suggest */
 .suggest-card{width:min(100%,460px);background:rgba(9,17,32,.96);border:1px solid var(--panel-b);border-radius:20px;

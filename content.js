@@ -73,7 +73,20 @@ window.CONTENT = {
         { label: "Qur'anic foundation", note: "Qur'an 49:6 (al-Hujurat) is commonly discussed as a basis for carefully verifying consequential reports before acting on them." },
         { label: "Why al-Sadiq", note: "Most narrations of the Ahl al-Bayt in Twelver collections are reported from Imam Ja'far al-Sadiq (d. 148 AH), which is why careful attribution to him matters." }
       ],
-      guardrail: "A fictional story built around real verification principles. Do not use the game alone to authenticate any report."
+      guardrail: "A fictional story built around real verification principles. Do not use the game alone to authenticate any report.",
+      chain: {
+        heading: "The chain as the market tells it. Tap each seal to weigh the link.",
+        nodes: [
+          { id: "origin",  label: "The reported origin",         trait: "Where the report claims to begin. Recorded as a seal — never depicted, never named as a sacred figure." },
+          { id: "named",   label: "The named carrier",  clue: "books",   trait: "A margin names him, but records no source for what he passed along." },
+          { id: "courier", label: "The courier of the east road", clue: "arch", trait: "A maker's mark ties him to the route — context that connects the pieces without deciding the truth." },
+          { id: "voice",   label: "The market voice",   clue: "pottery", trait: "A dated seal places the object in time, where the report reaches the street." },
+          { id: "you",     label: "Your casebook",              trait: "Where the report arrives — and where it waits for qualified scholars to weigh it." }
+        ],
+        weak: 1,
+        why: "The margin names this carrier but gives no source for the claim. A name without a traceable source is a useful lead, not proof — on this link the chain cannot yet be relied upon.",
+        lockedWhy: "Something about this link is undecided. Examine the street first — the evidence explains it."
+      }
     },
 
     /* ---------------------------------------------------------------- CH 2 */
@@ -125,7 +138,20 @@ window.CONTENT = {
         { label: "Grading rests on the chain", note: "Twelver grades such as sahih, hasan, and muwaththaq depend on the standing of the narrators in the chain." },
         { label: "Unknown ≠ dishonest", note: "A narrator who cannot be identified is majhul (unknown); this weakens reliance without accusing anyone of lying." }
       ],
-      guardrail: "Narrator judgements here are simplified teaching examples, not verdicts on real historical figures. Real rijal assessment belongs to qualified scholars."
+      guardrail: "Narrator judgements here are simplified teaching examples, not verdicts on real historical figures. Real rijal assessment belongs to qualified scholars.",
+      chain: {
+        heading: "The chain as the market tells it. Tap each seal to weigh the link.",
+        nodes: [
+          { id: "origin",   label: "The reported origin",    trait: "Where the report claims to begin. Recorded as a seal — never depicted." },
+          { id: "upright",  label: "The upright teacher",  clue: "adil",   trait: "Remembered as just ('adil) and precise (dabit) — trustworthy (thiqa)." },
+          { id: "merchant", label: "The honest merchant", clue: "dabit",  trait: "Honest, but known to mix wording with age. Precision matters as much as honesty." },
+          { id: "unnamed",  label: "The unnamed carrier", clue: "majhul", trait: "No book records who this was." },
+          { id: "you",      label: "Your casebook",          trait: "Where the report arrives — and where it waits for qualified scholars." }
+        ],
+        weak: 3,
+        why: "An unknown link means the whole chain cannot be relied upon, however fine the rest. We do not call the unknown a liar — we say plainly: its reliability is not established.",
+        lockedWhy: "Something about this link is undecided. Examine the street first — the evidence explains it."
+      }
     },
 
     /* ---------------------------------------------------------------- CH 3 */
@@ -177,7 +203,21 @@ window.CONTENT = {
         { label: "The text can betray a forgery", note: "Analysis of the matn (wording) — anachronisms or contradictions with the Qur'an and stronger evidence — can expose fabrication (wad')." },
         { label: "Endorsement is not proof", note: "Praise, popularity, or an impressive seal never substitute for a traceable, possible chain and sound content." }
       ],
-      guardrail: "A constructed puzzle to teach chronological reasoning. It is not a claim about any specific real narration; grading real reports is the work of qualified scholars."
+      guardrail: "A constructed puzzle to teach chronological reasoning. It is not a claim about any specific real narration; grading real reports is the work of qualified scholars.",
+      chain: {
+        heading: "The chain as the register tells it. The wording (matn) is weighed apart from the chain — tap each seal to test a link.",
+        nodes: [
+          { id: "origin",   label: "The reported origin", trait: "Where the report claims to begin. Recorded as a seal — never depicted." },
+          { id: "elder",    label: "The elder scribe",  clue: "death", trait: "A dated register fixes when this earlier narrator died." },
+          { id: "claimant", label: "The later claimant",         trait: "Claims to have heard the elder directly — but the dates must allow it." },
+          { id: "hall",     label: "The hall of dates",         trait: "Where lifetimes are compared and a meeting is either possible or not." }
+        ],
+        weak: 2,
+        weakRequires: "death",
+        broken: 1,
+        why: "The register fixes when the elder died. If the later one claims to have heard him directly after that date, the two never met — there is no connection (ittisal), so the link cannot stand however respected the names.",
+        lockedWhy: "Something about this link is undecided. Examine the register in the street first — the dates explain it."
+      }
     }
   ]
 };
