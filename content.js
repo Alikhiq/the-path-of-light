@@ -19,7 +19,7 @@ window.CONTENT = {
   hub: {
     title: "The Path of Light",
     subtitle: "Choose a chapter",
-    image: "assets/city-of-light.png",
+    image: "assets/city-of-light.jpg",
     intro: "Baghdad is alive with stories. Some are true. Some only sound true. Walk the city and learn how careful people tell the difference — without ever putting words on the Imams that were never theirs."
   },
 
