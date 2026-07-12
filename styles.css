@@ -296,6 +296,18 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
   text-shadow:0 2px 22px rgba(0,0,0,.75);transition:opacity .7s ease;max-width:24ch}
 .gate-panel .gold-button{pointer-events:auto}
 
+/* -------------------------------------------------------------- hub path */
+.hub-path{width:100%;max-width:960px;margin:0 auto}
+.hub-path-label{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:12px}
+.hub-path-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.path-way{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;
+  background:rgba(13,29,60,.6);border:1px solid var(--panel-b);border-radius:14px;padding:14px 16px;transition:transform .15s,border-color .15s}
+.path-way:hover,.path-way:active{border-color:var(--gold);transform:translateY(-2px)}
+.path-way span{font-size:18px;color:var(--gold)}
+.path-way b{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--paper)}
+.path-way small{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+@media(max-width:600px){.hub-path-row{grid-template-columns:1fr}}
+
 /* ------------------------------------------------------------ DESKTOP */
 @media (min-width:760px){
   .chapter-grid{grid-template-columns:repeat(3,1fr)}
