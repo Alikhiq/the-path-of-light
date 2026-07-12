@@ -288,5 +288,30 @@ window.CONTENT = {
     title: "The Mirror",
     note: "This reflects your play, not your nafs — only Allah knows the hearts.",
     intro: "A quiet reflection of how you have walked — not a measure of your soul."
+  },
+
+  /* ---------------------------------------------------------------- ENCOUNTER
+     "The Return" — method + stillness carried into the street as CONDUCT. A
+     neighbour brings a rumour; rushing to believe OR to deny are both haste.
+     The restraint the game already teaches — "its reliability is not
+     established" — is the true answer. No rulings; pure conduct. Edit freely. */
+  encounter: {
+    title: "A Rumour in the Street",
+    speaker: { name: "A neighbour", role: "The street, at dusk" },
+    note: "Method and stillness, carried into the street: to say exactly as much as the evidence allows — and no more.",
+    steps: [
+      { text: "Peace be upon you. They are saying in the market that a certain saying comes from a great teacher — everyone repeats it, so it must be sound. You have studied these things. Is it true?",
+        choices: [
+          { label: "If everyone repeats it, it must be true.", to: 1, toast: "Repeating a thing does not make it a source." },
+          { label: "It is false — pay it no mind.", to: 2, toast: "We do not declare a report false without proof either." },
+          { label: "Its reliability is not established — I would trace its chain first.", to: 3 }
+        ] },
+      { text: "So many mouths, though… yet you hesitate. Tell me plainly, then — how would a careful person answer?",
+        choices: [ { label: "Its reliability is not established, until we trace it.", to: 3 } ] },
+      { text: "You are quick to throw it away. But is that not the same haste, only turned around?",
+        choices: [ { label: "You are right. Its reliability is not established — no more, no less.", to: 3 } ] },
+      { text: "…You did not rush to believe, nor to deny. You weighed it, and you were honest about what you do not yet know. That restraint is the harder road — and the truer one. Peace be with you, friend.",
+        choices: [ { label: "Walk on.", to: "close" } ] }
+    ]
   }
 };

@@ -308,6 +308,37 @@
     $("#stillPanel").classList.remove("hidden");
   }
 
+  /* -------------------------------------------------- the return (encounter) */
+  // A pure-dialogue street scene: method + stillness as conduct. Reuses the
+  // dialogue overlay; restraint ("its reliability is not established") wins.
+  let encStep = 0;
+  function enterReturn() {
+    const e = C.encounter; if (!e) return;
+    encStep = 0;
+    $("#dPlace").textContent = e.speaker.role;
+    $("#dName").textContent = e.speaker.name;
+    if (A()) { A().init(); A().resume(); }
+    $("#dialogue").classList.remove("hidden");
+    renderEncounter();
+  }
+  function renderEncounter() {
+    const s = C.encounter.steps[encStep];
+    typeText(s.text);
+    $("#dStep").textContent = "In the street";
+    const box = $("#choices"); box.innerHTML = "";
+    s.choices.forEach(c => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = c.label;
+      b.onclick = () => chooseEncounter(c);
+      box.appendChild(b);
+    });
+  }
+  function chooseEncounter(c) {
+    if (A()) A().tick();
+    if (c.toast) toast(c.toast);
+    if (c.to === "close") { closeDialogue(); toast(C.encounter.note); return; }
+    encStep = c.to; renderEncounter();
+  }
+
   function exitWorld() {
     clearInterval(state._sitTimer); clearTimeout(stillHushT);
     if (state.seated) accrueSit();
@@ -536,6 +567,7 @@
     $("#beginBtn").onclick = () => { if (A()) { A().init(); A().resume(); } $("#opening").classList.add("hidden"); renderHub(); };
     $("#backBtn").onclick = () => { exitWorld(); renderHub(); };
     $("#circleBtn").onclick = enterHalaqa;
+    $("#returnBtn").onclick = enterReturn;
     $("#focusBtn").onclick = () => setFocus();
     $("#journalBtn").onclick = () => openCasebook("journal");
     $("#sourcesBtn").onclick = () => openCasebook("sources");
