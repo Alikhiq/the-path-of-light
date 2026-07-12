@@ -102,9 +102,11 @@
 
   <!-- ======================================================== DIALOGUE -->
   <section id="dialogue" class="dialogue hidden" role="dialog" aria-modal="true" aria-labelledby="dName">
-    <div class="portrait-wrap"><img id="dPortrait" src="assets/ustadha-maryam.jpg" alt="" onerror="this.style.display='none'" /></div>
     <article class="dialogue-box">
-      <div class="speaker"><span id="dPlace">House of Wisdom</span><h2 id="dName">Ustadha Maryam</h2></div>
+      <div class="speaker">
+        <img id="dPortrait" class="speaker-portrait" src="assets/ustadha-maryam.jpg" alt="" onerror="this.style.display='none'" />
+        <div class="speaker-id"><span id="dPlace">House of Wisdom</span><h2 id="dName">Ustadha Maryam</h2></div>
+      </div>
       <p id="dText"></p>
       <div id="choices" class="choices"></div>
       <div class="dialogue-footer"><span id="dStep">Conversation</span>
