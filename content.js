@@ -37,6 +37,7 @@ window.CONTENT = {
       objective: "Find the keeper of the manuscript",
       image: "assets/baghdad-street.png",
       tint: "warm",
+      landmark: "library",
       teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "Tap the glowing golden marker to speak with the teacher.",
       clues: [
@@ -88,6 +89,7 @@ window.CONTENT = {
       objective: "Weigh each name in the chain",
       image: "assets/baghdad-street.png",
       tint: "neutral",
+      landmark: "court",
       teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "Use Scholar's Focus to reveal each narrator, then judge them.",
       clues: [
@@ -139,6 +141,7 @@ window.CONTENT = {
       objective: "Find the link time makes impossible",
       image: "assets/baghdad-street.png",
       tint: "cool",
+      landmark: "observatory",
       teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "",
       clues: [

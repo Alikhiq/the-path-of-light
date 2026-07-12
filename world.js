@@ -113,6 +113,12 @@ window.World = (function () {
   const wallC = [0x14284a, 0x102544, 0x1a2c50, 0x0f2140];
   let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
 
+  function seedFrom(value) {
+    let hash = 17;
+    for (let i = 0; i < value.length; i++) hash = (hash * 31 + value.charCodeAt(i)) % 233280;
+    return hash || 7;
+  }
+
   function box(x, z, w, h, dep, col) {
     const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, dep), new THREE.MeshLambertMaterial({ color: col }));
     b.position.set(x, h / 2, z); scene.add(b); return b;
@@ -122,14 +128,16 @@ window.World = (function () {
     colliders.push({ x: cx, z: cz, hx, hz });
     for (let gx = -hx + 2; gx < hx; gx += 4.2) for (let gz = -hz + 2; gz < hz; gz += 4.2) {
       const h = 4 + rnd() * 8;
-      const b = box(cx + gx, cz + gz, 3.6, h, 3.6, wallC[(Math.abs((cx + gx) + (cz + gz)) | 0) % 4]);
+      const px = cx + gx + (rnd() - 0.5) * 0.55, pz = cz + gz + (rnd() - 0.5) * 0.55;
+      const bw = 3 + rnd() * 0.65, bd = 3 + rnd() * 0.65;
+      const b = box(px, pz, bw, h, bd, wallC[(Math.abs(px + pz) | 0) % 4]);
       // window dots facing the nearest street (rough)
       const winMat = new THREE.MeshBasicMaterial({ color: 0xf2cd6a });
-      const rows = Math.min(3, Math.floor(h / 2.4));
+      const rows = Math.min(2, Math.floor(h / 2.4));
       for (let r = 0; r < rows; r++) {
         const win = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), winMat);
-        const sx = cx + gx > 0 ? -1 : 1;
-        win.position.set(cx + gx + sx * 1.85, 1.4 + r * 1.9, cz + gz);
+        const sx = px > 0 ? -1 : 1;
+        win.position.set(px + sx * (bw / 2 + 0.02), 1.4 + r * 1.9, pz);
         win.rotation.y = sx > 0 ? Math.PI / 2 : -Math.PI / 2;
         scene.add(win);
       }
@@ -148,7 +156,47 @@ window.World = (function () {
     box(x, z, along === "x" ? 0.6 : 8, 1, along === "x" ? 8 : 0.6, 0x24365a).position.y = 5.4;
   }
 
-  function buildDistrict(tint) {
+  function libraryLandmark() {
+    box(-4.1, -21.7, 3.8, 6.4, 1.1, 0x1e3a6b);
+    box(4.1, -21.7, 3.8, 6.4, 1.1, 0x1e3a6b);
+    box(0, -21.7, 4.4, 1.15, 1.1, 0x263f6e).position.y = 5.82;
+    box(0, -21.08, 4.2, 0.28, 0.12, 0xf2cd6a).position.y = 5.58;
+    box(-5.35, -21.05, 0.2, 4.5, 0.2, 0xf2cd6a);
+    box(5.35, -21.05, 0.2, 4.5, 0.2, 0xf2cd6a);
+    colliders.push({ x: 0, z: -21.7, hx: 6.1, hz: 0.65 });
+  }
+
+  function courtLandmark() {
+    const stone = new THREE.MeshLambertMaterial({ color: 0x53627e });
+    const gold = new THREE.MeshBasicMaterial({ color: 0xf2cd6a });
+    for (const x of [-5.2, -2.6, 2.6, 5.2]) {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.4, 5.2, 8), stone);
+      col.position.set(x, 2.6, -21); scene.add(col);
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.18, 8), gold);
+      cap.position.set(x, 5.25, -21); scene.add(cap);
+      colliders.push({ x, z: -21, hx: 0.42, hz: 0.42 });
+    }
+    box(0, -21, 12, 0.5, 0.55, 0x263f6e).position.y = 5.7;
+  }
+
+  function observatoryLandmark() {
+    box(-11, -11, 4.2, 11.5, 4.2, 0x20365f);
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(2.25, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshLambertMaterial({ color: 0x52617d }));
+    dome.position.set(-11, 11.5, -11); scene.add(dome);
+    const ring = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.3, 0.22, 12), new THREE.MeshBasicMaterial({ color: 0xf2cd6a }));
+    ring.position.set(-11, 11.55, -11); scene.add(ring);
+    const scope = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.34, 3.7, 8), new THREE.MeshLambertMaterial({ color: 0x25304a }));
+    scope.position.set(-10.2, 13.2, -10.4); scope.rotation.z = -0.72; scene.add(scope);
+  }
+
+  function addLandmark(kind) {
+    if (kind === "library") libraryLandmark();
+    else if (kind === "court") courtLandmark();
+    else if (kind === "observatory") observatoryLandmark();
+  }
+
+  function buildDistrict(chapter) {
+    const tint = chapter.tint;
     const SKY = tint === "cool" ? 0x0b1830 : tint === "warm" ? 0x12203f : 0x0d1d3c;
     scene.background = new THREE.Color(SKY);
     scene.fog = new THREE.Fog(SKY, 9, 52);
@@ -156,7 +204,7 @@ window.World = (function () {
     const d = new THREE.DirectionalLight(0xffe6a8, 0.5); d.position.set(-8, 16, 6); scene.add(d);
     const moon = new THREE.Mesh(new THREE.SphereGeometry(3.4, 12, 12), new THREE.MeshBasicMaterial({ color: 0xf7e6a8 }));
     moon.position.set(26, 22, -52); scene.add(moon);
-    seed = 7;
+    seed = seedFrom(chapter.id);
 
     // ground + street strips
     box(0, 0, 60, 0.1, 60, 0x0f1d38).position.y = -0.05;
@@ -168,6 +216,7 @@ window.World = (function () {
 
     // four solid city blocks around the plaza (streets are the gaps)
     block(-11, -11, 7, 7); block(11, -11, 7, 7); block(-11, 11, 7, 7); block(11, 11, 7, 7);
+    addLandmark(chapter.landmark);
     // outer backdrop ring (non-walkable beyond bounds, no colliders needed — bounds clamp)
     for (let a = 0; a < Math.PI * 2; a += 0.5) box(Math.cos(a) * 28, Math.sin(a) * 28, 4, 5 + rnd() * 8, 4, wallC[(a * 3 | 0) % 4]);
 
@@ -244,7 +293,7 @@ window.World = (function () {
     ensure(); cbs = callbacks || {}; focus = false;
     revealAll = chapter.difficulty === "easy";
     revealDist = chapter.difficulty === "hard" ? 7 : 15;
-    clearScene(); buildDistrict(chapter.tint);
+    clearScene(); buildDistrict(chapter);
     addMarker("teacher", "__teacher", chapter.teacher.name, 0, -15, 0xf2cd6a);
     const slots = [[15, 0], [-15, 0], [0, -6], [0, 15]];   // east street, west street, plaza-north, south street
     chapter.clues.forEach((cl, i) => {
