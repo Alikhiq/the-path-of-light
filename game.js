@@ -95,6 +95,7 @@
 
     syncHud(); show("chapter");
     World.load(ch, { onExamine: investigate, onSpeak: talkToTeacher });
+    if (A()) A().startBed(ch.tint);
     openDialogue(ch.intro, "intro");
   }
 
@@ -127,7 +128,7 @@
     if (window.World) World.setFound(key);
 
     if (clue.decoy) { reward(0, -1); toast("Recorded — but is an endorsement really evidence?"); }
-    else { reward(10, 0); toast(`${clue.title} recorded · Insight +10`); }
+    else { reward(10, 0); if (A()) A().chime(); burst(); toast(`${clue.title} recorded · Insight +10`); }
 
     const need = requiredClues(ch).length;
     const have = requiredClues(ch).filter(c => state.found.has(c.key)).length;
@@ -151,9 +152,19 @@
   }
   const closeDialogue = () => $("#dialogue").classList.add("hidden");
 
+  let _typer = null;
+  function typeText(full) {
+    const el = $("#dText"); el._full = full;
+    clearInterval(_typer); _typer = null;
+    if (reduced()) { el.textContent = full; return; }
+    el.textContent = ""; let i = 0;
+    _typer = setInterval(() => { el.textContent = full.slice(0, ++i); if (i >= full.length) { clearInterval(_typer); _typer = null; } }, 16);
+  }
+  function skipType() { if (_typer) { clearInterval(_typer); _typer = null; } const el = $("#dText"); if (el._full) el.textContent = el._full; }
+
   function renderDialogue() {
     const d = state.dialogue[state.step];
-    $("#dText").textContent = d.text;
+    typeText(d.text);
     $("#dStep").textContent = `Conversation · ${state.step + 1} / ${state.dialogue.length}`;
     const box = $("#choices"); box.innerHTML = "";
     d.choices.forEach(choice => {
@@ -165,6 +176,7 @@
   }
 
   function choose(choice) {
+    if (A()) A().tick();
     if (choice.insight || choice.trust) reward(choice.insight || 0, choice.trust || 0);
     if (choice.toast) toast(choice.toast);
     const to = choice.to;
@@ -191,6 +203,7 @@
     const msg = first ? `Chapter complete — “${ch.title}”.` : `Revisited — “${ch.title}”.`;
     const more = next && !state.completed.has(next.id) ? ` Next unlocked: “${next.title}”.` : "";
     if (window.World) World.unload();
+    if (A()) A().stopBed();
     setTimeout(() => { renderHub(); toast(msg + more); }, 250);
   }
 
@@ -246,7 +259,29 @@
     toast("Thank you — your idea was saved.");
   }
 
-  const syncHud = () => { $("#insight").textContent = state.insight; $("#trust").textContent = state.trust; };
+  const reduced = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const A = () => window.Ambience;
+
+  function countUp(el, to) {
+    if (!el) return;
+    if (reduced()) { el.textContent = to; return; }
+    const from = parseInt(el.textContent, 10) || 0;
+    if (from === to) { el.textContent = to; return; }
+    clearInterval(el._cu); const steps = 12; let n = 0;
+    el._cu = setInterval(() => { n++; el.textContent = Math.round(from + (to - from) * n / steps); if (n >= steps) { clearInterval(el._cu); el.textContent = to; } }, 28);
+  }
+  function burst() {
+    if (reduced()) return;
+    for (let i = 0; i < 8; i++) {
+      const p = document.createElement("div"); p.className = "pip";
+      p.style.left = (46 + Math.random() * 8) + "%";
+      p.style.setProperty("--dx", (Math.random() * 80 - 40).toFixed(0) + "px");
+      p.style.animationDelay = Math.round(Math.random() * 90) + "ms";
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 950);
+    }
+  }
+  const syncHud = () => { countUp($("#insight"), state.insight); countUp($("#trust"), state.trust); };
 
   /* ------------------------------------------------------------------- pwa */
   function registerSW() {
@@ -261,12 +296,16 @@
 
   /* ------------------------------------------------------------------ wire */
   function init() {
-    $("#beginBtn").onclick = () => { $("#opening").classList.add("hidden"); renderHub(); };
-    $("#backBtn").onclick = () => { if (window.World) World.unload(); save(); renderHub(); };
+    $("#beginBtn").onclick = () => { if (A()) { A().init(); A().resume(); } $("#opening").classList.add("hidden"); renderHub(); };
+    $("#backBtn").onclick = () => { if (window.World) World.unload(); if (A()) A().stopBed(); save(); renderHub(); };
     $("#focusBtn").onclick = () => setFocus();
     $("#journalBtn").onclick = () => openCasebook("journal");
     $("#sourcesBtn").onclick = () => openCasebook("sources");
     $("#controlsBtn").onclick = () => toast("Click to look · WASD / joystick to walk · E or tap to interact · Esc to close");
+    const updateSound = m => { $("#soundBtn").classList.toggle("muted", m); $("#soundBtn").setAttribute("aria-pressed", String(!m)); $("#soundLabel").textContent = m ? "Muted" : "Sound"; };
+    $("#soundBtn").onclick = () => { if (A()) { A().init(); A().resume(); updateSound(A().toggleMute()); } };
+    if (A()) updateSound(A().isMuted());
+    $("#dText").onclick = skipType;
     $$("[data-close]").forEach(x => x.onclick = closeCasebook);
     $("#closeDialogue").onclick = closeDialogue;
     $$("[data-suggest-open]").forEach(x => x.onclick = openSuggest);
@@ -277,6 +316,7 @@
       if ($("#chapter").classList.contains("hidden")) return;
       const k = e.key.toLowerCase();
       if (k === "q") setFocus();
+      if (e.key === "Enter" && !$("#dialogue").classList.contains("hidden")) skipType();
       if (e.key === "Escape") { closeDialogue(); closeCasebook(); closeSuggest(); }
     });
 

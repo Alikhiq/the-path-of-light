@@ -216,6 +216,12 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
   max-width:88vw;text-align:center;opacity:0;pointer-events:none;transition:.3s;box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* evidence pickup particle + muted control */
+.pip{position:fixed;bottom:34%;left:50%;width:8px;height:8px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 8px var(--gold);pointer-events:none;z-index:40;animation:pip .85s ease-out forwards}
+@keyframes pip{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx,0),-92px) scale(.4)}}
+.quick-nav button.muted{opacity:.5}
+
 /* ------------------------------------------------------------ DESKTOP */
 @media (min-width:760px){
   .chapter-grid{grid-template-columns:repeat(3,1fr)}
