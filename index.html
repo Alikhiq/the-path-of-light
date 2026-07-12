@@ -37,6 +37,7 @@
       <p id="hubIntro" class="hub-intro"></p>
       <div id="chapterGrid" class="chapter-grid"></div>
       <div class="hub-actions">
+        <button id="circleBtn" class="ghost-button circle-btn"><span>☾</span> The Circle of Stillness</button>
         <button data-suggest-open class="ghost-button"><span>✎</span> Suggest an idea</button>
         <button id="installBtn" class="ghost-button hidden"><span>＋</span> Add to phone</button>
       </div>
@@ -49,6 +50,7 @@
     <canvas id="world" aria-label="Walkable first-person Baghdad street"></canvas>
     <div id="worldLabels" aria-hidden="true"></div>
     <div class="cinematic-shade" aria-hidden="true"></div>
+    <div id="stillVeil" class="still-veil" aria-hidden="true"></div>
     <div class="reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
     <p id="lookHint" class="look-hint">Click to look · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk</p>
 
@@ -82,6 +84,12 @@
       <button id="soundBtn" aria-pressed="false"><span>♪</span><small id="soundLabel">Sound</small></button>
       <button id="controlsBtn"><span>⚙</span><small>Controls</small></button>
     </nav>
+
+    <section id="stillPanel" class="still-panel hidden" aria-label="The circle">
+      <p id="stillSpeaker" class="still-speaker"></p>
+      <p id="stillLine" class="still-line"></p>
+      <div id="stillChoices" class="still-choices"></div>
+    </section>
 
     <div id="interactPrompt" class="interact-prompt"><kbd>E</kbd><span id="interactText">Examine</span></div>
     <div id="touchControls">

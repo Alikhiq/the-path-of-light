@@ -261,6 +261,27 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
 @keyframes pip{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx,0),-92px) scale(.4)}}
 .quick-nav button.muted{opacity:.5}
 
+/* ---------------------------------------------------- circle of stillness */
+.circle-btn span{color:var(--gold)}
+.in-halaqa .mission-panel,.in-halaqa .focus-button,.in-halaqa #guide,.in-halaqa .reticle{display:none !important}
+.still-veil{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0;transition:opacity 1.4s ease;
+  background:radial-gradient(circle at 50% 44%,transparent 26%,rgba(6,10,20,.7) 100%)}
+.seated .still-veil{opacity:1}
+.seated .hud-top,.seated .quick-nav{opacity:.3;transition:opacity 1.2s ease}
+.still-panel{position:absolute;left:50%;bottom:calc(30px + var(--safe-b));transform:translateX(-50%);z-index:9;
+  width:min(92vw,520px);text-align:center;background:rgba(9,17,32,.72);border:1px solid var(--line);border-radius:20px;
+  padding:22px 24px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:stillin 1s ease both}
+@keyframes stillin{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.still-speaker{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.still-line{font-family:var(--serif);font-size:19px;line-height:1.5;color:var(--ink);margin:8px 0 16px}
+.still-choices{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.still-choices button{font-family:var(--sans);font-size:13px;color:var(--ink);background:rgba(20,40,74,.5);
+  border:1px solid var(--line);border-radius:22px;padding:9px 16px;cursor:pointer}
+.still-choices button:hover,.still-choices button:active{border-color:var(--gold);background:rgba(30,58,107,.6)}
+.wlabel.sit{border-color:var(--gold);color:var(--ink);background:rgba(6,12,24,.82)}
+.mirror-note{font-family:var(--serif);font-style:italic;color:var(--gold);border:1px solid var(--line);
+  border-radius:12px;padding:14px 16px;margin-bottom:14px;text-align:center;line-height:1.5}
+
 /* ------------------------------------------------------------ DESKTOP */
 @media (min-width:760px){
   .chapter-grid{grid-template-columns:repeat(3,1fr)}

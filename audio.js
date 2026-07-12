@@ -8,7 +8,7 @@ window.Ambience = (function () {
   "use strict";
   const MUTE_KEY = "pol-muted-v1";
   const VOL = 0.85;
-  let ctx = null, master = null, bed = null, muted = false;
+  let ctx = null, master = null, bed = null, muted = false, still = null;
   try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch (e) {}
 
   function init() {
@@ -76,6 +76,30 @@ window.Ambience = (function () {
     blip(300, ctx.currentTime, 0.05, "sine", 0.045);
   }
 
+  // The Circle of Stillness: duck the ambient bed and raise one soft sustained drone.
+  function stillOn() {
+    init(); if (!ctx) return; resume();
+    if (bed) bed.gain.setTargetAtTime(0.03, ctx.currentTime, 0.7);   // ambient recedes
+    if (still) return;
+    const g = ctx.createGain(); g.gain.value = 0.0001;
+    g.gain.setTargetAtTime(0.06, ctx.currentTime, 1.4);              // slow swell
+    const o1 = ctx.createOscillator(), o2 = ctx.createOscillator();
+    o1.type = "sine"; o1.frequency.value = 146.83;                   // low D
+    o2.type = "sine"; o2.frequency.value = 220.0;                    // gentle upper
+    o1.connect(g); o2.connect(g); g.connect(master);
+    o1.start(); o2.start();
+    still = { o1, o2, g };
+  }
+  function stillOff() {
+    if (bed && ctx) bed.gain.setTargetAtTime(0.10, ctx.currentTime, 0.7); // ambient returns
+    if (!still || !ctx) { still = null; return; }
+    const s = still; still = null;
+    try {
+      s.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.5);
+      setTimeout(() => { try { s.o1.stop(); s.o2.stop(); s.g.disconnect(); } catch (e) {} }, 1000);
+    } catch (e) {}
+  }
+
   function setMuted(m) {
     muted = !!m;
     try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch (e) {}
@@ -85,5 +109,5 @@ window.Ambience = (function () {
   const toggleMute = () => setMuted(!muted);
   const isMuted = () => muted;
 
-  return { init, resume, startBed, stopBed, chime, tick, toggleMute, isMuted, setMuted };
+  return { init, resume, startBed, stopBed, chime, tick, stillOn, stillOff, toggleMute, isMuted, setMuted };
 })();

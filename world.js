@@ -13,6 +13,7 @@ window.World = (function () {
 
   let renderer, scene, camera, canvas, labelLayer, promptEl, promptText, actBtn, joyEl, knob;
   let inited = false, active = false, focus = false, revealAll = false, revealDist = 13, raf = 0, last = 0, locked = false;
+  let seated = false, eyeY = 1.6, mode = "district";
   let interactables = [], colliders = [], current = null, cbs = {};
   const keys = {};
   const player = { pos: new THREE.Vector3(0, 1.6, 22), yaw: 0, pitch: 0 };
@@ -53,7 +54,7 @@ window.World = (function () {
     });
     addEventListener("keyup", e => { keys[e.key.toLowerCase()] = false; });
     canvas.addEventListener("click", () => {
-      if (active && !isTouch && !modalOpen() && canvas.requestPointerLock) canvas.requestPointerLock();
+      if (active && !isTouch && !seated && !modalOpen() && canvas.requestPointerLock) canvas.requestPointerLock();
     });
     document.addEventListener("pointerlockchange", () => { locked = document.pointerLockElement === canvas; });
     document.addEventListener("mousemove", e => {
@@ -343,8 +344,72 @@ window.World = (function () {
     interactables.push({ kind, key, group: g, glow, el, label, pos: g.position });
   }
 
+  /* ---- The Circle of Stillness (halaqa) — a place, not a chapter ---- */
+  function nurFigure(x, z, facing) {
+    const g = new THREE.Group();
+    const light = new THREE.MeshBasicMaterial({ color: 0xffe6a8 });
+    const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.6, 1.1, 8), light);
+    robe.position.y = 0.55; g.add(robe);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), light);   // NO face, ever — light only
+    head.position.y = 1.2; g.add(head);
+    const halo = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xf2cd6a, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false }));
+    halo.position.y = 0.85; g.add(halo);
+    g.position.set(x, 0, z); g.rotation.y = facing; scene.add(g); return g;
+  }
+
+  function buildHalaqa() {
+    scene.background = new THREE.Color(0x0a1424);
+    scene.fog = new THREE.Fog(0x14243f, 6, 34);
+    scene.add(new THREE.HemisphereLight(0x8ea0c8, 0x0a1018, 0.7));
+    const d = new THREE.DirectionalLight(0xffe6a8, 0.3); d.position.set(0, 10, 5); scene.add(d);
+    seed = seedFrom("halaqa");
+    stars(180);
+    box(0, 0, 40, 0.1, 40, 0x0c1626).position.y = -0.05;                          // ground
+    const matC = new THREE.Mesh(new THREE.CircleGeometry(4.2, 28), new THREE.MeshLambertMaterial({ color: 0x2a2038, emissive: 0x160c1e }));
+    matC.rotation.x = -Math.PI / 2; matC.position.y = 0.02; scene.add(matC);       // warm central mat
+    const rim = new THREE.Mesh(new THREE.RingGeometry(4.0, 4.6, 32),
+      new THREE.MeshBasicMaterial({ color: 0xf2cd6a, transparent: true, opacity: 0.13, blending: THREE.AdditiveBlending, depthWrite: false }));
+    rim.rotation.x = -Math.PI / 2; rim.position.y = 0.03; scene.add(rim);
+    const wc = 0x14223c;                                                           // low walls, southern entrance gap
+    box(0, -8, 18, 3.2, 0.6, wc); colliders.push({ x: 0, z: -8, hx: 9, hz: 0.35 });
+    box(-8, 0, 0.6, 3.2, 18, wc); colliders.push({ x: -8, z: 0, hx: 0.35, hz: 9 });
+    box(8, 0, 0.6, 3.2, 18, wc); colliders.push({ x: 8, z: 0, hx: 0.35, hz: 9 });
+    box(-5.5, 8, 5, 3.2, 0.6, wc); colliders.push({ x: -5.5, z: 8, hx: 2.5, hz: 0.35 });
+    box(5.5, 8, 5, 3.2, 0.6, wc); colliders.push({ x: 5.5, z: 8, hx: 2.5, hz: 0.35 });
+    lamp(-7, -7); lamp(7, -7); lamp(-7, 7); lamp(7, 7);
+    const N = 6, R = 2.9;                                                          // ring of نūر light-beings
+    for (let i = 0; i < N; i++) { const a = (i / N) * Math.PI * 2 + 0.35; nurFigure(Math.cos(a) * R, Math.sin(a) * R, -a); }
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 10), new THREE.MeshBasicMaterial({ color: 0xffcf7a }));
+    flame.position.y = 0.5; scene.add(flame);                                      // central soft flame
+    const fhalo = new THREE.Mesh(new THREE.SphereGeometry(1.25, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xf2cd6a, transparent: true, opacity: 0.1, blending: THREE.AdditiveBlending, depthWrite: false }));
+    fhalo.position.y = 0.6; scene.add(fhalo);
+  }
+
+  function addSit(x, z) {
+    const el = document.createElement("div"); el.className = "wlabel sit"; el.textContent = "Sit — be still";
+    labelLayer.appendChild(el);
+    interactables.push({ kind: "sit", key: "__sit", el, label: "the circle", pos: new THREE.Vector3(x, 0, z) });
+  }
+
+  function loadHalaqa(callbacks) {
+    ensure(); cbs = callbacks || {}; mode = "halaqa"; seated = false; eyeY = 1.6; focus = false; revealAll = true;
+    clearScene(); buildHalaqa(); addSit(0, 0);
+    player.pos.set(0, 1.6, 6.5); player.yaw = 0; player.pitch = 0;                 // at the entrance, facing the circle
+    active = true;
+    if (!raf) { last = 0; raf = requestAnimationFrame(frame); }
+  }
+
+  function setSeated(on) {
+    if (seated === on) return;
+    seated = on;
+    if (on && locked && document.exitPointerLock) document.exitPointerLock();
+    if (cbs.onSitChange) cbs.onSitChange(on);
+  }
+
   function load(chapter, callbacks) {
-    ensure(); cbs = callbacks || {}; focus = false;
+    ensure(); cbs = callbacks || {}; focus = false; mode = "district"; seated = false; eyeY = 1.6;
     revealAll = chapter.difficulty === "easy";
     revealDist = chapter.difficulty === "hard" ? 7 : 15;
     clearScene(); buildDistrict(chapter);
@@ -360,7 +425,7 @@ window.World = (function () {
   }
 
   function unload() {
-    active = false;
+    active = false; seated = false; eyeY = 1.6; mode = "district";
     if (locked && document.exitPointerLock) document.exitPointerLock();
     clearScene();
     if (promptEl) promptEl.style.display = "none";
@@ -372,7 +437,10 @@ window.World = (function () {
     if (t) { t.el.classList.add("done"); t.glow.material.opacity = 0.1; }
   }
   function setFocus(on) { focus = on; }
-  function fire(t) { t.kind === "teacher" ? (cbs.onSpeak && cbs.onSpeak()) : (cbs.onExamine && cbs.onExamine(t.key)); }
+  function fire(t) {
+    if (t.kind === "sit") { setSeated(!seated); return; }
+    t.kind === "teacher" ? (cbs.onSpeak && cbs.onSpeak()) : (cbs.onExamine && cbs.onExamine(t.key));
+  }
 
   // circle-vs-AABB, axis-separated so the player slides along walls
   function step(nx, nz) {
@@ -394,7 +462,7 @@ window.World = (function () {
     const paused = modalOpen();
     if (paused && locked && document.exitPointerLock) document.exitPointerLock();
 
-    if (!paused) {
+    if (!paused && !seated) {
       let ix = 0, iy = 0;
       if (keys["w"] || keys["arrowup"]) iy += 1;
       if (keys["s"] || keys["arrowdown"]) iy -= 1;
@@ -409,7 +477,8 @@ window.World = (function () {
         step(player.pos.x + (mx / ml) * sp * dt, player.pos.z + (mz / ml) * sp * dt);
       }
     }
-    camera.position.copy(player.pos);
+    eyeY += ((seated ? 0.95 : 1.6) - eyeY) * Math.min(1, dt * 4);   // camera settles low when seated
+    camera.position.set(player.pos.x, eyeY, player.pos.z);
     camera.rotation.y = player.yaw; camera.rotation.x = player.pitch;
 
     current = null; let best = 3.3;
@@ -417,21 +486,22 @@ window.World = (function () {
       const dx = t.pos.x - player.pos.x, dz = t.pos.z - player.pos.z, d = Math.hypot(dx, dz);
       proj.set(t.pos.x, 2.9, t.pos.z).project(camera);
       if (proj.z < 1) {
-        const showable = revealAll || focus || t.kind === "teacher" || d < revealDist;
+        const showable = revealAll || focus || t.kind === "teacher" || t.kind === "sit" || d < revealDist;
         t.el.style.display = showable ? "block" : "none";
         t.el.style.left = (proj.x * 0.5 + 0.5) * innerWidth + "px";
         t.el.style.top = (-proj.y * 0.5 + 0.5) * innerHeight + "px";
         t.el.style.opacity = Math.max(0.25, 1 - d / 30);
       } else t.el.style.display = "none";
       if (!paused && d < best) { best = d; current = t; }
-      t.glow.position.y = 2.6 + Math.sin(now / 400 + t.pos.z) * 0.12;
+      if (t.glow) t.glow.position.y = 2.6 + Math.sin(now / 400 + t.pos.z) * 0.12;
     }
     if (starField && !reducedMotion) starField.material.opacity = 0.72 + Math.sin(now / 1400) * 0.14;
 
-    if (!paused && current) {
-      promptText.textContent = (current.kind === "teacher" ? "Speak with " : "Examine ") + current.label;
+    if (!paused && current && !seated) {
+      const isSit = current.kind === "sit";
+      promptText.textContent = isSit ? "Sit — be still" : (current.kind === "teacher" ? "Speak with " : "Examine ") + current.label;
       promptEl.style.display = isTouch ? "none" : "flex";
-      if (isTouch) { actBtn.style.display = "flex"; actBtn.textContent = current.kind === "teacher" ? "SPEAK" : "EXAMINE"; }
+      if (isTouch) { actBtn.style.display = "flex"; actBtn.textContent = isSit ? "SIT" : current.kind === "teacher" ? "SPEAK" : "EXAMINE"; }
     } else {
       promptEl.style.display = "none";
       if (isTouch) actBtn.style.display = "none";
@@ -439,5 +509,5 @@ window.World = (function () {
     renderer.render(scene, camera);
   }
 
-  return { load, unload, setFound, setFocus };
+  return { load, loadHalaqa, unload, setFound, setFocus, rise: () => setSeated(false) };
 })();

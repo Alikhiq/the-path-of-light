@@ -257,5 +257,36 @@ window.CONTENT = {
       def: "The books scholars wrote about the people in the chains — who each narrator was and how reliable. It is how we know a name is upright, forgetful, or unknown.",
       aliases: ["ilm al-rijal", "rijal"] }
   },
-  glossaryNote: "Plain-language starter definitions to help you follow the story. Full technical meanings, and any judgement about real reports, belong to qualified scholars."
+  glossaryNote: "Plain-language starter definitions to help you follow the story. Full technical meanings, and any judgement about real reports, belong to qualified scholars.",
+
+  /* ---------------------------------------------------------------- HALAQA
+     The Circle of Stillness — the third beat of the path (spectacle, method,
+     STILLNESS). A place, not a level. Entering gives no points; the reward is
+     the quiet. Ambient lines are gentle wisdom, never rulings. Edit freely. */
+  halaqa: {
+    title: "The Circle of Stillness",
+    place: "A lamplit courtyard",
+    invite: "A ring of light sits in the quiet. Walk in and sit, or simply stand and be.",
+    ambient: [
+      { who: "A seeker", line: "I came with a hundred questions. I am learning to sit with one." },
+      { who: "An elder of the circle", line: "The one who checks a report twice has already begun to guard his tongue." },
+      { who: "A young voice", line: "Is it enough, just to be quiet?" },
+      { who: "The teacher", line: "Stillness is where knowledge settles. Hurry only spills it." },
+      { who: "A traveller", line: "In the market I wanted to be heard. Here I am learning to listen." }
+    ],
+    intentions: [
+      "To seek knowledge for its own sake",
+      "To be gentle with what I do not yet know",
+      "To slow down before I speak"
+    ],
+    intentionAck: "The circle holds your intention in the quiet. Nothing here is scored — only Allah knows the hearts."
+  },
+
+  /* The Mirror — reflects how you have PLAYED (care, patience, presence). It
+     never grades your soul. The note below is permanent and non-negotiable. */
+  mirror: {
+    title: "The Mirror",
+    note: "This reflects your play, not your nafs — only Allah knows the hearts.",
+    intro: "A quiet reflection of how you have walked — not a measure of your soul."
+  }
 };

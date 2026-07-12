@@ -18,11 +18,13 @@
     insight: Number.isFinite(saved.insight) ? saved.insight : 0,
     trust: Number.isFinite(saved.trust) ? saved.trust : 0,
     completed: new Set(saved.completed || []),
-    chapter: null, phase: "intro", dialogue: [], step: 0, found: new Set(), focus: false
+    mirror: Object.assign({ care: 0, read: 0, skip: 0, presenceSec: 0 }, saved.mirror || {}),
+    chapter: null, phase: "intro", dialogue: [], step: 0, found: new Set(), focus: false,
+    inHalaqa: false, seated: false, sitStart: 0
   };
 
   const save = () => localStorage.setItem(SAVE_KEY, JSON.stringify({
-    insight: state.insight, trust: state.trust, completed: [...state.completed]
+    insight: state.insight, trust: state.trust, completed: [...state.completed], mirror: state.mirror
   }));
 
   function toast(t) {
@@ -181,15 +183,15 @@
   function typeText(full) {
     const el = $("#dText"); el._full = full;
     clearInterval(_typer); _typer = null;
-    if (reduced()) { el.innerHTML = linkTerms(full); return; }
+    if (reduced()) { el.innerHTML = linkTerms(full); state.mirror.read++; save(); return; }
     el.textContent = ""; let i = 0;
     _typer = setInterval(() => {
       el.textContent = full.slice(0, ++i);
-      if (i >= full.length) { clearInterval(_typer); _typer = null; el.innerHTML = linkTerms(full); }
+      if (i >= full.length) { clearInterval(_typer); _typer = null; el.innerHTML = linkTerms(full); state.mirror.read++; save(); }   // read a line to the end = patience
     }, 16);
   }
   function skipType() {
-    if (_typer) { clearInterval(_typer); _typer = null; }
+    if (_typer) { clearInterval(_typer); _typer = null; state.mirror.skip++; save(); }   // interrupted mid-line = hurry
     const el = $("#dText"); if (el._full) el.innerHTML = linkTerms(el._full);
   }
 
@@ -236,6 +238,70 @@
     if (window.World) World.unload();
     if (A()) A().stopBed();
     setTimeout(() => { renderHub(); toast(msg + more); }, 250);
+  }
+
+  /* ---------------------------------------------------- circle of stillness */
+  function enterHalaqa() {
+    const h = C.halaqa; if (!h) return;
+    state.chapter = null; state.inHalaqa = true; state.seated = false;
+    $("#chTitle").textContent = h.title;
+    $("#chEra").textContent = h.place;
+    $("#brandSeal").textContent = C.brandWord;
+    $("#chapter").className = "screen in-halaqa";
+    $("#chainBtn").classList.add("hidden");
+    show("chapter");
+    World.loadHalaqa({ onSitChange: onSit });
+    if (A()) A().startBed("cool");
+    toast(h.invite);
+  }
+
+  function onSit(on) {
+    state.seated = on;
+    $("#chapter").classList.toggle("seated", on);
+    if (on) { state.sitStart = Date.now(); if (A()) A().stillOn(); openStill(); }
+    else { accrueSit(); if (A()) A().stillOff(); $("#stillPanel").classList.add("hidden"); }
+  }
+  function accrueSit() {
+    if (!state.sitStart) return;
+    state.mirror.presenceSec += Math.max(0, Math.round((Date.now() - state.sitStart) / 1000));
+    state.sitStart = 0; save();
+  }
+
+  let stillIdx = 0;
+  function renderStillLine(h) {
+    const a = h.ambient[stillIdx % h.ambient.length];
+    $("#stillSpeaker").textContent = a.who;
+    $("#stillLine").textContent = a.line;
+  }
+  function baseChips(h) {
+    const chips = $("#stillChoices"); chips.innerHTML = "";
+    const mk = (label, fn) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.onclick = fn; chips.appendChild(b); };
+    mk("Sit in silence", () => { stillIdx++; renderStillLine(h); if (A()) A().tick(); });
+    mk("Offer an intention", () => offerIntention(h));
+    mk("Rise", () => World.rise());
+  }
+  function offerIntention(h) {
+    const chips = $("#stillChoices"); chips.innerHTML = "";
+    h.intentions.forEach(t => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = t;
+      b.onclick = () => { $("#stillSpeaker").textContent = "The circle"; $("#stillLine").textContent = h.intentionAck; if (A()) A().chime(); baseChips(h); };
+      chips.appendChild(b);
+    });
+    const back = document.createElement("button"); back.type = "button"; back.textContent = "Not now"; back.onclick = () => baseChips(h); chips.appendChild(back);
+  }
+  function openStill() {
+    const h = C.halaqa; stillIdx = 0;
+    renderStillLine(h); baseChips(h);
+    $("#stillPanel").classList.remove("hidden");
+  }
+
+  function exitWorld() {
+    if (state.seated) accrueSit();
+    if (window.World) World.unload();
+    if (A()) { A().stillOff(); A().stopBed(); }
+    state.inHalaqa = false; state.seated = false;
+    $("#stillPanel").classList.add("hidden");
+    save();
   }
 
   /* -------------------------------------------------------------- casebook */
@@ -292,12 +358,32 @@
     });
   }
 
+  // The Mirror — reflects how the player has PLAYED, never grades the soul.
+  // The permanent note is non-negotiable and sits above every observation.
+  function renderMirror() {
+    const m = state.mirror, mr = C.mirror || {}, obs = [];
+    if (m.care > 0) obs.push(["Care", `You opened the glossary ${m.care} time${m.care > 1 ? "s" : ""} to understand a word before moving on.`]);
+    const total = m.read + m.skip;
+    if (total > 0) obs.push(["Patience", m.read >= m.skip
+      ? `You let ${m.read} of ${total} lines finish before choosing — unhurried.`
+      : `You often moved quickly through the words — ${m.read} of ${total} read to the end.`]);
+    if (m.presenceSec > 0) { const mm = Math.floor(m.presenceSec / 60), ss = m.presenceSec % 60;
+      obs.push(["Presence", `You have sat in the circle for ${mm ? mm + "m " : ""}${ss}s of quiet.`]); }
+    if (state.completed.size) obs.push(["The path", `You have walked ${state.completed.size} station${state.completed.size > 1 ? "s" : ""} of the way.`]);
+    const body = obs.length
+      ? obs.map(([k, v]) => `<div class="record"><span>${k}</span><p>${v}</p></div>`).join("")
+      : `<div class="record"><p>Walk a while, read with care, and sit in the circle — the mirror fills as you go.</p></div>`;
+    return `<div class="mirror-note">${mr.note || "This reflects your play, not your nafs — only Allah knows the hearts."}</div>` +
+      (mr.intro ? `<p class="sheet-intro">${mr.intro}</p>` : "") + body;
+  }
+
   // Tab strip prepended to every casebook view so all sections are reachable
-  // without an index.html change. Chain/Glossary tabs appear only when present.
+  // without an index.html change. Chain/Glossary/Mirror tabs appear only when present.
   const tabsHtml = (active, ch) => {
     const tabs = [["journal", "Casebook"], ["sources", "Sources"]];
     if (ch.chain) tabs.push(["chain", "Sanad"]);
     if (C.glossary) tabs.push(["glossary", "Glossary"]);
+    if (C.mirror) tabs.push(["mirror", "Mirror"]);
     return `<div class="sheet-tabs" role="group" aria-label="Casebook sections">` +
       tabs.map(([t, l]) => `<button type="button" data-tab="${t}" aria-pressed="${t === active}">${l}</button>`).join("") +
       `</div>`;
@@ -305,11 +391,14 @@
 
   function openCasebook(type, focusKey) {
     const ch = state.chapter || C.chapters[0];
-    const isSources = type === "sources", isChain = type === "chain", isGloss = type === "glossary";
-    $("#sheetEyebrow").textContent = isGloss ? "Words of the craft" : isChain ? "Chain of narrators · sanad" : isSources ? "Method & source notes" : "Investigation record";
-    $("#sheetTitle").textContent = isGloss ? "Glossary" : isChain ? "The Chain" : isSources ? "How reports are checked" : ch.title;
+    const isSources = type === "sources", isChain = type === "chain", isGloss = type === "glossary", isMirror = type === "mirror";
+    $("#sheetEyebrow").textContent = isMirror ? "A quiet reflection" : isGloss ? "Words of the craft" : isChain ? "Chain of narrators · sanad" : isSources ? "Method & source notes" : "Investigation record";
+    $("#sheetTitle").textContent = isMirror ? (C.mirror ? C.mirror.title : "The Mirror") : isGloss ? "Glossary" : isChain ? "The Chain" : isSources ? "How reports are checked" : ch.title;
     let html = tabsHtml(type || "journal", ch);
-    if (isGloss) {
+    if (isMirror) {
+      html += renderMirror();
+    } else if (isGloss) {
+      state.mirror.care++; save();
       const g = C.glossary;
       html += `<p class="sheet-intro">Tap any golden word in the story to jump here. Plain words first — the craft terms follow.</p>` +
         Object.keys(g).map(k => {
@@ -431,7 +520,8 @@
   /* ------------------------------------------------------------------ wire */
   function init() {
     $("#beginBtn").onclick = () => { if (A()) { A().init(); A().resume(); } $("#opening").classList.add("hidden"); renderHub(); };
-    $("#backBtn").onclick = () => { if (window.World) World.unload(); if (A()) A().stopBed(); save(); renderHub(); };
+    $("#backBtn").onclick = () => { exitWorld(); renderHub(); };
+    $("#circleBtn").onclick = enterHalaqa;
     $("#focusBtn").onclick = () => setFocus();
     $("#journalBtn").onclick = () => openCasebook("journal");
     $("#sourcesBtn").onclick = () => openCasebook("sources");
