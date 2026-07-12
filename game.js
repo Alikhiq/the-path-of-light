@@ -18,7 +18,7 @@
     insight: Number.isFinite(saved.insight) ? saved.insight : 0,
     trust: Number.isFinite(saved.trust) ? saved.trust : 0,
     completed: new Set(saved.completed || []),
-    mirror: Object.assign({ care: 0, read: 0, skip: 0, presenceSec: 0 }, saved.mirror || {}),
+    mirror: Object.assign({ care: 0, read: 0, skip: 0, presenceSec: 0, restraint: 0, intentions: 0 }, saved.mirror || {}),
     chapter: null, phase: "intro", dialogue: [], step: 0, found: new Set(), focus: false,
     inHalaqa: false, seated: false, sitStart: 0
   };
@@ -297,7 +297,7 @@
     const chips = $("#stillChoices"); chips.innerHTML = "";
     h.intentions.forEach(t => {
       const b = document.createElement("button"); b.type = "button"; b.textContent = t;
-      b.onclick = () => { $("#stillSpeaker").textContent = "The circle"; $("#stillLine").textContent = h.intentionAck; if (A()) A().chime(); baseChips(h); };
+      b.onclick = () => { state.mirror.intentions = (state.mirror.intentions || 0) + 1; save(); $("#stillSpeaker").textContent = "The circle"; $("#stillLine").textContent = h.intentionAck; if (A()) A().chime(); baseChips(h); };
       chips.appendChild(b);
     });
     const back = document.createElement("button"); back.type = "button"; back.textContent = "Not now"; back.onclick = () => baseChips(h); chips.appendChild(back);
@@ -359,6 +359,7 @@
     if (A()) A().tick();
     if (c.toast) toast(c.toast);
     if (c.to === "close") { closeDialogue(); toast(C.encounter.note); return; }
+    if (c.to === 3) { state.mirror.restraint = (state.mirror.restraint || 0) + 1; save(); }   // remembered conduct: chose restraint
     encStep = c.to; renderEncounter();
   }
 
@@ -438,6 +439,8 @@
       const p = m.presenceSec < 30 ? "a few breaths" : m.presenceSec < 180 ? "a little while" : m.presenceSec < 900 ? "a while" : "a long while";
       obs.push(["Presence", `You have sat in the circle for ${p}.`]);   // graduated language — no number to farm
     }
+    if (m.restraint > 0) obs.push(["Restraint", "When a rumour was put to you, you weighed it — and said no more than the evidence allowed."]);   // the Mirror remembers conduct
+    if (m.intentions > 0) obs.push(["Intention", "You paused, in the circle, to set an intention for yourself."]);
     if (state.completed.size) obs.push(["The path", `You have walked ${state.completed.size} station${state.completed.size > 1 ? "s" : ""} of the way.`]);
     const body = obs.length
       ? obs.map(([k, v]) => `<div class="record"><span>${k}</span><p>${v}</p></div>`).join("")
