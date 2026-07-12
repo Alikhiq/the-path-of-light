@@ -4,6 +4,7 @@ const CORE = [
   "./",
   "index.html",
   "styles.css",
+  "config.js",
   "content.js",
   "game.js",
   "manifest.webmanifest",

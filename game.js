@@ -316,11 +316,19 @@
       list.push(entry);
       localStorage.setItem(SUGGEST_KEY, JSON.stringify(list));
     } catch {}
-    // If a database endpoint is configured later, send there too (best-effort).
-    if (window.SUGGEST_ENDPOINT) {
+    // Best-effort send to the database (Supabase REST). Local save above is the fallback.
+    const cfg = window.POL_CONFIG;
+    if (cfg && cfg.supabaseUrl && cfg.supabaseKey) {
       try {
-        await fetch(window.SUGGEST_ENDPOINT, {
-          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry)
+        await fetch(`${cfg.supabaseUrl}/rest/v1/${cfg.suggestionsTable || "pol_suggestions"}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": cfg.supabaseKey,
+            "Authorization": "Bearer " + cfg.supabaseKey,
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ text: entry.text, chapter: entry.chapter })
         });
       } catch {}
     }
