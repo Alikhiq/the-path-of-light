@@ -1,7 +1,7 @@
 /*
-  The Path of Light — ENGINE
-  Reads window.CONTENT (see content.js) and runs the game.
-  You normally do not need to edit this file to change the story — edit content.js.
+  The Path of Light — game logic. Drives the 3D walkable World (world.js) and
+  all the UI: hub, branching dialogue, investigation, casebook, save, suggestions.
+  Story content lives in content.js. This file rarely needs editing to change the story.
 */
 (() => {
   "use strict";
@@ -11,49 +11,33 @@
 
   const SAVE_KEY = "pol-save-v1";
   const SUGGEST_KEY = "pol-suggestions-v1";
-
-  const load = () => {
-    try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { return {}; }
-  };
+  const load = () => { try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || {}; } catch { return {}; } };
   const saved = load();
 
   const state = {
     insight: Number.isFinite(saved.insight) ? saved.insight : 0,
     trust: Number.isFinite(saved.trust) ? saved.trust : 0,
     completed: new Set(saved.completed || []),
-    // per-chapter runtime
-    chapter: null,       // current chapter object
-    phase: "intro",      // intro | investigate | resolve
-    dialogue: [],        // active dialogue array
-    step: 0,
-    found: new Set(),
-    focus: false,
-    lookX: 0, lookY: 0
+    chapter: null, phase: "intro", dialogue: [], step: 0, found: new Set(), focus: false
   };
 
   const save = () => localStorage.setItem(SAVE_KEY, JSON.stringify({
     insight: state.insight, trust: state.trust, completed: [...state.completed]
   }));
 
-  /* ---------------------------------------------------------------- helpers */
   function toast(t) {
-    const el = $("#toast");
-    el.textContent = t;
-    el.classList.add("show");
-    clearTimeout(toast.t);
-    toast.t = setTimeout(() => el.classList.remove("show"), 2400);
+    const el = $("#toast"); el.textContent = t; el.classList.add("show");
+    clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove("show"), 2400);
   }
 
   function reward(insight = 0, trust = 0) {
     if (insight) state.insight += insight;
-    // Easy mode never punishes: drop negative trust for young players.
     if (trust < 0 && state.chapter && state.chapter.difficulty === "easy") trust = 0;
     state.trust = Math.max(0, state.trust + trust);
-    syncHud();
-    save();
+    syncHud(); save();
   }
 
-  function requiredClues(ch) { return ch.clues.filter(c => !c.decoy); }
+  const requiredClues = ch => ch.clues.filter(c => !c.decoy);
 
   /* ---------------------------------------------------------------- screens */
   function show(screen) {
@@ -70,20 +54,17 @@
   function renderHub() {
     $("#hubImage").src = C.hub.image;
     $("#hubIntro").textContent = C.hub.intro;
-    const grid = $("#chapterGrid");
-    grid.innerHTML = "";
+    const grid = $("#chapterGrid"); grid.innerHTML = "";
     C.chapters.forEach(ch => {
-      const unlocked = chapterUnlocked(ch);
-      const done = state.completed.has(ch.id);
+      const unlocked = chapterUnlocked(ch), done = state.completed.has(ch.id);
       const card = document.createElement("button");
       card.className = "chapter-card" + (unlocked ? "" : " locked") + (done ? " done" : "");
       card.disabled = !unlocked;
       card.innerHTML =
         `<span class="cc-badge">${ch.badge}</span>` +
         `<span class="cc-diff diff-${ch.difficulty}">${ch.difficulty}</span>` +
-        `<h3>${ch.title}</h3>` +
-        `<p>${ch.teaser}</p>` +
-        `<span class="cc-foot">${done ? "✓ Completed · replay" : unlocked ? "Begin →" : "🔒 Finish the previous chapter"}</span>`;
+        `<h3>${ch.title}</h3><p>${ch.teaser}</p>` +
+        `<span class="cc-foot">${done ? "✓ Completed · replay" : unlocked ? "Enter →" : "🔒 Finish the previous chapter"}</span>`;
       if (unlocked) card.onclick = () => enterChapter(ch.id);
       grid.appendChild(card);
     });
@@ -94,74 +75,33 @@
 
   /* --------------------------------------------------------------- chapter */
   function enterChapter(id) {
-    const ch = C.chapters.find(c => c.id === id);
-    if (!ch) return;
-    state.chapter = ch;
-    state.phase = "intro";
-    state.found = new Set();
-    state.focus = false;
-    state.lookX = 0; state.lookY = 0;
+    const ch = C.chapters.find(c => c.id === id); if (!ch) return;
+    state.chapter = ch; state.phase = "intro"; state.found = new Set(); state.focus = false;
 
-    const scene = $("#scene");
-    scene.className = "scene tint-" + (ch.tint || "neutral");
-    scene.style.setProperty("--look-x", "0%");
-    scene.style.setProperty("--look-y", "0%");
-    $("#sceneImg").src = ch.image;
-    $("#sceneImg").alt = `A first-person view in ${ch.place}`;
-
-    // HUD text
     $("#chBadge").textContent = ch.badge;
     $("#chPlace").textContent = ch.place;
     $("#chTitle").textContent = ch.title;
     $("#chEra").textContent = ch.era;
     $("#objectiveText").textContent = ch.objective;
     $("#brandSeal").textContent = C.brandWord;
-
-    // difficulty class controls marker visibility + guide
     $("#chapter").className = "screen diff-" + ch.difficulty;
+
+    const need = requiredClues(ch).length;
+    $("#evidenceCount").textContent = `Evidence 0 / ${need}`;
+    $$(".evidence-row i").forEach(x => x.classList.remove("found"));
     const guide = $("#guide");
     guide.textContent = ch.guide || "";
     guide.classList.toggle("hidden", !ch.guide || ch.difficulty !== "easy");
 
-    buildMarkers(ch);
-    syncHud();
-    show("chapter");
+    syncHud(); show("chapter");
+    World.load(ch, { onExamine: investigate, onSpeak: talkToTeacher });
     openDialogue(ch.intro, "intro");
-  }
-
-  function buildMarkers(ch) {
-    const scene = $("#scene");
-    $$(".clue", scene).forEach(n => n.remove());
-    $$(".character-marker", scene).forEach(n => n.remove());
-
-    ch.clues.forEach(clue => {
-      const b = document.createElement("button");
-      b.className = "clue" + (clue.decoy ? " decoy" : "");
-      b.style.left = clue.x + "%";
-      b.style.top = clue.y + "%";
-      b.setAttribute("aria-label", "Investigate: " + clue.hint);
-      b.innerHTML = `<span class="clue-ring"></span><i>⌕</i><b>${clue.hint}</b>`;
-      b.onclick = () => investigate(clue.key);
-      scene.appendChild(b);
-    });
-
-    const m = document.createElement("button");
-    m.id = "teacherMarker";
-    m.className = "character-marker";
-    m.setAttribute("aria-label", "Speak with " + ch.teacher.name);
-    m.innerHTML = `<span class="marker-symbol">✦</span><b>${ch.teacher.name}</b><small>Tap to speak</small>`;
-    m.onclick = () => talkToTeacher();
-    scene.appendChild(m);
   }
 
   function talkToTeacher() {
     const ch = state.chapter;
     if (state.phase === "investigate") {
-      if (state.found.size < requiredClues(ch).length) {
-        toast("Find the evidence first, then return.");
-        setFocus(true);
-        return;
-      }
+      if (state.found.size < requiredClues(ch).length) { toast("Find the evidence in the street first, then return."); return; }
       openDialogue(ch.resolve, "resolve");
     } else if (state.phase === "intro") {
       openDialogue(ch.intro, "intro");
@@ -174,25 +114,20 @@
     state.focus = on;
     $("#chapter").classList.toggle("focused", on);
     $("#focusBtn").setAttribute("aria-pressed", String(on));
-    toast(on ? "Scholar's Focus reveals points of evidence" : "Scholar's Focus closed");
+    if (window.World) World.setFocus(on);
+    toast(on ? "Scholar's Focus reveals the evidence markers" : "Scholar's Focus closed");
   }
 
   function investigate(key) {
     const ch = state.chapter;
-    const clue = ch.clues.find(c => c.key === key);
-    if (!clue) return;
+    const clue = ch.clues.find(c => c.key === key); if (!clue) return;
     if (state.found.has(key)) { toast("Already recorded in the casebook"); return; }
 
     state.found.add(key);
-    markMarkerFound(key);
+    if (window.World) World.setFound(key);
 
-    if (clue.decoy) {
-      reward(0, -1);
-      toast("Recorded — but is an endorsement really evidence?");
-    } else {
-      reward(10, 0);
-      toast(`${clue.title} recorded · Insight +10`);
-    }
+    if (clue.decoy) { reward(0, -1); toast("Recorded — but is an endorsement really evidence?"); }
+    else { reward(10, 0); toast(`${clue.title} recorded · Insight +10`); }
 
     const need = requiredClues(ch).length;
     const have = requiredClues(ch).filter(c => state.found.has(c.key)).length;
@@ -201,23 +136,13 @@
 
     if (have >= need) {
       $("#objectiveText").textContent = "Return to the teacher";
-      toast("Evidence gathered — return to the teacher");
+      toast("Evidence gathered — walk back to the teacher");
     }
-  }
-
-  function markMarkerFound(key) {
-    const ch = state.chapter;
-    const idx = ch.clues.findIndex(c => c.key === key);
-    const btn = $$("#scene .clue")[idx];
-    if (btn) btn.classList.add("found");
   }
 
   /* -------------------------------------------------------------- dialogue */
   function openDialogue(list, phase) {
-    state.dialogue = list;
-    state.phase = phase;
-    state.step = 0;
-    setFocus(false);
+    state.dialogue = list; state.phase = phase; state.step = 0;
     const ch = state.chapter;
     $("#dPortrait").src = ch.teacher.portrait;
     $("#dPortrait").alt = ch.teacher.name;
@@ -232,8 +157,7 @@
     const d = state.dialogue[state.step];
     $("#dText").textContent = d.text;
     $("#dStep").textContent = `Conversation · ${state.step + 1} / ${state.dialogue.length}`;
-    const box = $("#choices");
-    box.innerHTML = "";
+    const box = $("#choices"); box.innerHTML = "";
     d.choices.forEach(choice => {
       const b = document.createElement("button");
       b.textContent = choice.label;
@@ -245,21 +169,18 @@
   function choose(choice) {
     if (choice.insight || choice.trust) reward(choice.insight || 0, choice.trust || 0);
     if (choice.toast) toast(choice.toast);
-
     const to = choice.to;
     if (to === "investigate") {
       closeDialogue();
       state.phase = "investigate";
       const need = requiredClues(state.chapter).length;
-      $("#objectiveText").textContent = `Use Scholar's Focus to find ${need} clues`;
-      $("#evidenceCount").textContent = `Evidence 0 / ${need}`;
+      $("#objectiveText").textContent = `Explore the street — find ${need} clues`;
       setFocus(true);
       return;
     }
     if (to === "complete") { closeDialogue(); completeChapter(); return; }
     if (to === "close") { closeDialogue(); return; }
     if (typeof to === "number") { state.step = to; renderDialogue(); return; }
-    // default: advance
     state.step = Math.min(state.step + 1, state.dialogue.length - 1);
     renderDialogue();
   }
@@ -267,13 +188,11 @@
   function completeChapter() {
     const ch = state.chapter;
     const first = !state.completed.has(ch.id);
-    state.completed.add(ch.id);
-    save();
+    state.completed.add(ch.id); save();
     const next = C.chapters.find(c => c.order === ch.order + 1);
-    const msg = first
-      ? `Chapter complete — “${ch.title}”.`
-      : `Revisited — “${ch.title}”.`;
+    const msg = first ? `Chapter complete — “${ch.title}”.` : `Revisited — “${ch.title}”.`;
     const more = next && !state.completed.has(next.id) ? ` Next unlocked: “${next.title}”.` : "";
+    if (window.World) World.unload();
     setTimeout(() => { renderHub(); toast(msg + more); }, 250);
   }
 
@@ -294,7 +213,7 @@
           const got = state.found.has(c.key);
           return `<div class="record ${got ? "" : "locked"}"><span>Evidence ${i + 1}${c.decoy ? " · decoy" : ""}</span>` +
             `<strong>${got ? c.title : "Undiscovered"}</strong>` +
-            `<p>${got ? c.copy : "Use Scholar's Focus in the street to find this clue."}</p></div>`;
+            `<p>${got ? c.copy : "Walk the street and examine this marker to record it."}</p></div>`;
         }).join("") +
         `<div class="source-note">A fictional narrative built around real verification principles. Do not use the game alone to authenticate a report.</div>`;
     }
@@ -304,7 +223,7 @@
   const closeCasebook = () => $("#casebook").classList.add("hidden");
 
   /* ------------------------------------------------------------ suggestion */
-  function openSuggest() { $("#suggest").classList.remove("hidden"); $("#suggestText").focus(); }
+  const openSuggest = () => { $("#suggest").classList.remove("hidden"); $("#suggestText").focus(); };
   const closeSuggest = () => $("#suggest").classList.add("hidden");
 
   async function sendSuggest() {
@@ -313,107 +232,57 @@
     const entry = { text, chapter: state.chapter ? state.chapter.id : "hub", at: new Date().toISOString() };
     try {
       const list = JSON.parse(localStorage.getItem(SUGGEST_KEY) || "[]");
-      list.push(entry);
-      localStorage.setItem(SUGGEST_KEY, JSON.stringify(list));
+      list.push(entry); localStorage.setItem(SUGGEST_KEY, JSON.stringify(list));
     } catch {}
-    // Best-effort send to the database (Supabase REST). Local save above is the fallback.
     const cfg = window.POL_CONFIG;
     if (cfg && cfg.supabaseUrl && cfg.supabaseKey) {
       try {
         await fetch(`${cfg.supabaseUrl}/rest/v1/${cfg.suggestionsTable || "pol_suggestions"}`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "apikey": cfg.supabaseKey,
-            "Authorization": "Bearer " + cfg.supabaseKey,
-            "Prefer": "return=minimal"
-          },
+          headers: { "Content-Type": "application/json", "apikey": cfg.supabaseKey, "Authorization": "Bearer " + cfg.supabaseKey, "Prefer": "return=minimal" },
           body: JSON.stringify({ text: entry.text, chapter: entry.chapter })
         });
       } catch {}
     }
-    $("#suggestText").value = "";
-    closeSuggest();
+    $("#suggestText").value = ""; closeSuggest();
     toast("Thank you — your idea was saved.");
   }
 
-  /* ------------------------------------------------------------------- HUD */
-  function syncHud() {
-    $("#insight").textContent = state.insight;
-    $("#trust").textContent = state.trust;
-  }
-
-  /* --------------------------------------------------------------- look/move */
-  function applyLook() {
-    $("#scene").style.setProperty("--look-x", state.lookX + "%");
-    $("#scene").style.setProperty("--look-y", state.lookY + "%");
-  }
-  function lookFrom(clientX, clientY) {
-    if (!$("#dialogue").classList.contains("hidden")) return;
-    state.lookX = (clientX / innerWidth - 0.5) * -2.2;
-    state.lookY = (clientY / innerHeight - 0.5) * -1.5;
-    applyLook();
-  }
+  const syncHud = () => { $("#insight").textContent = state.insight; $("#trust").textContent = state.trust; };
 
   /* ------------------------------------------------------------------- pwa */
   function registerSW() {
-    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
-    }
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   }
   let deferredPrompt = null;
   function wireInstall() {
-    window.addEventListener("beforeinstallprompt", e => {
-      e.preventDefault();
-      deferredPrompt = e;
-      $("#installBtn").classList.remove("hidden");
-    });
-    $("#installBtn").onclick = async () => {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      $("#installBtn").classList.add("hidden");
-    };
-    window.addEventListener("appinstalled", () => $("#installBtn").classList.add("hidden"));
+    addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; $("#installBtn").classList.remove("hidden"); });
+    $("#installBtn").onclick = async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $("#installBtn").classList.add("hidden"); };
+    addEventListener("appinstalled", () => $("#installBtn").classList.add("hidden"));
   }
 
   /* ------------------------------------------------------------------ wire */
   function init() {
     $("#beginBtn").onclick = () => { $("#opening").classList.add("hidden"); renderHub(); };
-    $("#backBtn").onclick = () => { save(); renderHub(); };
+    $("#backBtn").onclick = () => { if (window.World) World.unload(); save(); renderHub(); };
     $("#focusBtn").onclick = () => setFocus();
     $("#journalBtn").onclick = () => openCasebook("journal");
     $("#sourcesBtn").onclick = () => openCasebook("sources");
-    $("#controlsBtn").onclick = () => toast("Drag / mouse: look · Focus button or Q: reveal · Tap markers · Esc: close");
+    $("#controlsBtn").onclick = () => toast("Click to look · WASD / joystick to walk · E or tap to interact · Esc to close");
     $$("[data-close]").forEach(x => x.onclick = closeCasebook);
     $("#closeDialogue").onclick = closeDialogue;
     $$("[data-suggest-open]").forEach(x => x.onclick = openSuggest);
     $("#suggestSend").onclick = sendSuggest;
     $("#suggestClose").onclick = closeSuggest;
 
-    window.addEventListener("mousemove", e => lookFrom(e.clientX, e.clientY));
-    window.addEventListener("touchmove", e => {
-      if (e.touches[0]) lookFrom(e.touches[0].clientX, e.touches[0].clientY);
-    }, { passive: true });
-
-    window.addEventListener("keydown", e => {
-      const k = e.key.toLowerCase();
+    addEventListener("keydown", e => {
       if ($("#chapter").classList.contains("hidden")) return;
+      const k = e.key.toLowerCase();
       if (k === "q") setFocus();
-      if (k === "e") talkToTeacher();
       if (e.key === "Escape") { closeDialogue(); closeCasebook(); closeSuggest(); }
-      const step = 0.4;
-      if (["arrowleft", "a"].includes(k)) state.lookX = Math.min(2.5, state.lookX + step);
-      if (["arrowright", "d"].includes(k)) state.lookX = Math.max(-2.5, state.lookX - step);
-      if (["arrowup", "w"].includes(k)) state.lookY = Math.min(1.5, state.lookY + 0.3);
-      if (["arrowdown", "s"].includes(k)) state.lookY = Math.max(-1.5, state.lookY - 0.3);
-      applyLook();
     });
 
-    syncHud();
-    registerSW();
-    wireInstall();
+    syncHud(); registerSW(); wireInstall();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

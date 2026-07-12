@@ -234,3 +234,27 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
 }
+
+/* ------------------------------------------------------------ 3D WORLD */
+#world{position:absolute;inset:0;width:100%;height:100%;display:block;background:#0d1d3c;image-rendering:pixelated;cursor:crosshair;touch-action:none}
+#worldLabels{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+.wlabel{position:absolute;transform:translate(-50%,-100%);white-space:nowrap;font-family:var(--mono);font-size:11px;
+  background:rgba(9,17,32,.8);border:1px solid var(--gold);border-radius:14px;padding:3px 10px;color:var(--ink)}
+.wlabel.clue{border-color:var(--teal);color:#cdeeee}
+.wlabel.done{opacity:.4;border-color:rgba(255,255,255,.2);color:var(--muted)}
+.look-hint{position:absolute;z-index:6;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--muted);pointer-events:none;display:flex;gap:3px;align-items:center}
+.interact-prompt{position:absolute;z-index:7;left:50%;bottom:calc(122px + var(--safe-b));transform:translateX(-50%);
+  display:none;align-items:center;gap:8px;background:var(--gold);color:var(--navy);font-weight:600;font-size:14px;
+  padding:9px 18px;border-radius:24px;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.interact-prompt kbd{background:rgba(10,23,48,.18);border-color:rgba(10,23,48,.35);color:var(--navy);opacity:1}
+#touchControls{display:none}
+#joy{position:absolute;z-index:7;left:22px;bottom:calc(26px + var(--safe-b));width:118px;height:118px;border-radius:50%;
+  background:rgba(9,17,32,.4);border:1px solid var(--line);touch-action:none}
+#knob{position:absolute;left:34px;top:34px;width:50px;height:50px;border-radius:50%;background:rgba(242,205,106,.6);border:1px solid var(--gold)}
+.act-btn{position:absolute;z-index:7;right:22px;bottom:calc(52px + var(--safe-b));width:76px;height:76px;border-radius:50%;
+  display:none;align-items:center;justify-content:center;background:rgba(242,205,106,.9);color:var(--navy);font-weight:700;font-size:12px;border:0}
+@media (hover:none) and (pointer:coarse){
+  #touchControls{display:block}
+  .look-hint{display:none}
+}

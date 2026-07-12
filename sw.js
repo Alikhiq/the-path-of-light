@@ -1,5 +1,5 @@
 /* The Path of Light — service worker (offline app shell) */
-const CACHE = "pol-v1";
+const CACHE = "pol-v2";
 const CORE = [
   "./",
   "index.html",
@@ -7,6 +7,7 @@ const CORE = [
   "config.js",
   "content.js",
   "game.js",
+  "world.js",
   "manifest.webmanifest",
   "assets/icon.svg",
   "assets/city-of-light.png",
