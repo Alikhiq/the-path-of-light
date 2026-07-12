@@ -2,86 +2,112 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="The Path of Light — a first-person historical Shia learning adventure." />
-  <title>The Path of Light · First-person adventure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="The Path of Light — a first-person historical Shia learning adventure set in Baghdad." />
+  <meta name="theme-color" content="#0a1730" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Path of Light" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <title>The Path of Light</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main id="game" class="game" aria-label="First-person historical adventure">
-    <div id="scene" class="scene" role="img" aria-label="A first-person view along a fictional Abbasid-era Baghdad street">
-      <img src="assets/baghdad-street.png" alt="" draggable="false" />
+
+  <!-- ============================================================ HUB -->
+  <main id="hub" class="screen hub" aria-label="Chapter select">
+    <img id="hubImage" class="hub-image" src="assets/city-of-light.png" alt="" draggable="false" />
+    <div class="hub-shade"></div>
+
+    <header class="hub-top">
+      <div class="brand"><span class="brand-seal">نور</span>
+        <span><strong>The Path of Light</strong><small>A historical learning adventure</small></span></div>
+      <div class="status">
+        <span><small>Insight</small><b id="hubInsight">0</b></span>
+        <span><small>Trust</small><b id="hubTrust">0</b></span>
+      </div>
+    </header>
+
+    <section class="hub-body">
+      <p id="hubIntro" class="hub-intro"></p>
+      <div id="chapterGrid" class="chapter-grid"></div>
+      <div class="hub-actions">
+        <button data-suggest-open class="ghost-button"><span>✎</span> Suggest an idea</button>
+        <button id="installBtn" class="ghost-button hidden"><span>＋</span> Add to phone</button>
+      </div>
+      <p class="hub-note">Fictional story · Twelver Shia educational framework · No sacred figures depicted · Content to be reviewed by qualified scholars</p>
+    </section>
+  </main>
+
+  <!-- ======================================================== CHAPTER -->
+  <main id="chapter" class="screen hidden" aria-label="Chapter">
+    <div id="scene" class="scene tint-neutral" role="img" aria-label="A first-person historical street view">
+      <img id="sceneImg" src="assets/baghdad-street.png" alt="" draggable="false" />
       <div class="cinematic-shade"></div>
-      <div id="focusVeil" class="focus-veil" aria-hidden="true"></div>
-
-      <button class="clue clue-books" data-clue="books" aria-label="Investigate the manuscript stall">
-        <span class="clue-ring"></span><i>⌕</i><b>Manuscript stall</b>
-      </button>
-      <button class="clue clue-arch" data-clue="arch" aria-label="Investigate the courtyard inscription">
-        <span class="clue-ring"></span><i>⌕</i><b>Courtyard mark</b>
-      </button>
-      <button class="clue clue-pottery" data-clue="pottery" aria-label="Investigate the potter's seal">
-        <span class="clue-ring"></span><i>⌕</i><b>Potter’s seal</b>
-      </button>
-
-      <button id="maryamMarker" class="character-marker" aria-label="Speak with Ustadha Maryam">
-        <span class="marker-symbol">✦</span><b>Ustadha Maryam</b><small>Press E to speak</small>
-      </button>
+      <div class="focus-veil" aria-hidden="true"></div>
       <div class="reticle" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
     </div>
 
     <header class="hud-top">
-      <div class="brand">
-        <span class="brand-seal">نور</span>
-        <span><strong>The Path of Light</strong><small>Baghdad · 250 AH</small></span>
+      <button id="backBtn" class="icon-button" aria-label="Back to chapters">‹</button>
+      <div class="brand"><span id="brandSeal" class="brand-seal">نور</span>
+        <span><strong id="chTitle">The Unbroken Chain</strong><small id="chEra">Baghdad · 250 AH</small></span></div>
+      <div class="status">
+        <span><small>Insight</small><b id="insight">0</b></span>
+        <span><small>Trust</small><b id="trust">0</b></span>
       </div>
-      <div class="compass" aria-label="Facing east"><i></i><span>W</span><span>NW</span><strong>E</strong><span>SE</span><span>S</span><i></i></div>
-      <div class="status"><span><small>Insight</small><b id="insight">120</b></span><span><small>Trust</small><b id="trust">6</b></span></div>
     </header>
 
     <aside class="mission-panel panel">
-      <div class="chapter-line"><span>Sequence 01</span><i></i></div>
-      <p>House of Wisdom</p>
-      <h1>The Unbroken Chain</h1>
-      <div class="objective"><i>◆</i><div><small>Current objective</small><strong id="objectiveText">Find the keeper of the manuscript</strong></div></div>
+      <div class="chapter-line"><span id="chBadge">Sequence 01</span><i></i></div>
+      <p id="chPlace">House of Wisdom</p>
+      <div class="objective"><i>◆</i><div><small>Current objective</small><strong id="objectiveText">…</strong></div></div>
       <div class="evidence-row"><span id="evidenceCount">Evidence 0 / 3</span><div><i></i><i></i><i></i></div></div>
     </aside>
 
-    <button id="focusBtn" class="focus-button panel" aria-pressed="false"><kbd>Q</kbd><span><small>Scholar’s focus</small><b>Reveal evidence</b></span></button>
+    <p id="guide" class="guide-hint hidden"></p>
 
-    <div class="movement-hint panel"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Look & move</span><span><kbd>E</kbd> Interact</span></div>
+    <button id="focusBtn" class="focus-button panel" aria-pressed="false"><kbd>Q</kbd>
+      <span><small>Scholar's Focus</small><b>Reveal evidence</b></span></button>
 
-    <nav class="quick-nav panel" aria-label="Adventure menu">
+    <nav class="quick-nav panel" aria-label="Menu">
       <button id="journalBtn"><span>▤</span><small>Casebook</small></button>
       <button id="sourcesBtn"><span>◫</span><small>Sources</small></button>
-      <button id="settingsBtn"><span>⚙</span><small>Controls</small></button>
+      <button data-suggest-open><span>✎</span><small>Suggest</small></button>
+      <button id="controlsBtn"><span>⚙</span><small>Controls</small></button>
     </nav>
   </main>
 
+  <!-- ========================================================= OPENING -->
   <section id="opening" class="overlay opening" role="dialog" aria-modal="true" aria-labelledby="openingTitle">
     <article class="opening-card">
       <p class="basmala">بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ</p>
       <div class="title-rule"><i></i><span>A historical mystery</span><i></i></div>
-      <h2 id="openingTitle">The Unbroken<br /><em>Chain</em></h2>
-      <p>Baghdad, 250 AH. A narration is spreading through the city. Before it shapes a community, discover where it came from—and whether it can be trusted.</p>
-      <button id="beginBtn" class="gold-button">Begin sequence <span>→</span></button>
+      <h2 id="openingTitle">The Path of<br /><em>Light</em></h2>
+      <p>Baghdad. Stories move through the city — some true, some only sounding true. Learn how careful people tell them apart.</p>
+      <button id="beginBtn" class="gold-button">Enter the city <span>→</span></button>
       <small>Fictional story · Twelver Shia educational framework · No sacred figures depicted</small>
     </article>
   </section>
 
-  <section id="dialogue" class="dialogue hidden" role="dialog" aria-modal="true" aria-labelledby="speakerName">
-    <div class="portrait-wrap"><img src="assets/ustadha-maryam.png" alt="Ustadha Maryam, a fictional librarian, holding a manuscript" /></div>
+  <!-- ======================================================== DIALOGUE -->
+  <section id="dialogue" class="dialogue hidden" role="dialog" aria-modal="true" aria-labelledby="dName">
+    <div class="portrait-wrap"><img id="dPortrait" src="assets/ustadha-maryam.png" alt="" /></div>
     <article class="dialogue-box">
-      <div class="speaker"><span>House of Wisdom</span><h2 id="speakerName">Ustadha Maryam</h2></div>
-      <p id="dialogueText"></p>
+      <div class="speaker"><span id="dPlace">House of Wisdom</span><h2 id="dName">Ustadha Maryam</h2></div>
+      <p id="dText"></p>
       <div id="choices" class="choices"></div>
-      <div class="dialogue-footer"><span id="dialogueStep">Conversation</span><button id="closeDialogue" aria-label="Leave conversation">Leave <kbd>Esc</kbd></button></div>
+      <div class="dialogue-footer"><span id="dStep">Conversation</span>
+        <button id="closeDialogue" aria-label="Leave conversation">Leave <kbd>Esc</kbd></button></div>
     </article>
   </section>
 
+  <!-- ========================================================= CASEBOOK -->
   <section id="casebook" class="side-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <button class="sheet-close" data-close aria-label="Close casebook">×</button>
     <p class="eyebrow" id="sheetEyebrow">Investigation record</p>
@@ -89,7 +115,23 @@
     <div id="sheetBody"></div>
   </section>
 
+  <!-- ========================================================= SUGGEST -->
+  <section id="suggest" class="overlay suggest hidden" role="dialog" aria-modal="true" aria-labelledby="suggestTitle">
+    <article class="suggest-card">
+      <p class="eyebrow">Help the game grow</p>
+      <h2 id="suggestTitle">Suggest an idea</h2>
+      <p class="suggest-lead">A chapter, a topic, a fix, anything. Suggestions are saved and shape what gets built next.</p>
+      <textarea id="suggestText" rows="4" placeholder="I wish the game had…" aria-label="Your suggestion"></textarea>
+      <div class="suggest-actions">
+        <button id="suggestClose" class="ghost-button">Cancel</button>
+        <button id="suggestSend" class="gold-button">Send idea</button>
+      </div>
+    </article>
+  </section>
+
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="content.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

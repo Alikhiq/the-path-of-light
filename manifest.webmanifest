@@ -1,0 +1,16 @@
+{
+  "name": "The Path of Light",
+  "short_name": "Path of Light",
+  "description": "A first-person historical Shia learning adventure set in Baghdad. Explore the city and learn how careful people verify what is true.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a1730",
+  "theme_color": "#0a1730",
+  "categories": ["education", "games"],
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
