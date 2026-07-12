@@ -219,5 +219,43 @@ window.CONTENT = {
         lockedWhy: "Something about this link is undecided. Examine the register in the street first — the dates explain it."
       }
     }
-  ]
+  ],
+
+  /* ---------------------------------------------------------------- GLOSSARY
+     ADDITIVE ONLY. Plain-language starter definitions. game.js turns known
+     transliterated terms in dialogue and casebook records into tappable links
+     at render time — it never edits the stored educational text above. */
+  glossary: {
+    sanad:   { term: "Sanad",   arabic: "سند",   short: "The chain of tellers",
+      def: "The list of people a report passed through, one to the next, until it reached the books. Careful checkers read every name on that list.",
+      aliases: ["sanad"] },
+    matn:    { term: "Matn",    arabic: "متن",   short: "The words of the report",
+      def: "What the report actually says. Even when the chain looks fine, the words themselves can be tested against time, sense, and stronger evidence.",
+      aliases: ["matn"] },
+    thiqa:   { term: "Thiqa",   arabic: "ثقة",   short: "Trustworthy",
+      def: "Said of a narrator who is both honest and careful with words. It takes both — a kind person with a fuzzy memory is not enough.",
+      aliases: ["thiqa"] },
+    dabit:   { term: "Dabit",   arabic: "ضابط",  short: "Precise memory",
+      def: "A narrator who keeps a report's wording exactly right, year after year, without mixing it up. Care with memory matters as much as honesty.",
+      aliases: ["dabit", "dabt"] },
+    majhul:  { term: "Majhul",  arabic: "مجهول", short: "Unknown",
+      def: "A name in the chain that nobody can identify. Unknown does not mean dishonest — it means we cannot lean on a link we cannot see.",
+      aliases: ["majhul"] },
+    ittisal: { term: "Ittisal", arabic: "اتصال", short: "A connected chain",
+      def: "Every teller really could have met the one before — their lifetimes and places overlapped. If two people never met, the chain is broken.",
+      aliases: ["ittisal"] },
+    wad:     { term: "Wad'",    arabic: "وضع",   short: "Fabrication",
+      def: "Making a saying up and pinning it on someone who never said it. The heaviest fault a report can have — and the one this game teaches you to spot.",
+      aliases: ["wad'", "wad’"] },
+    thabit:  { term: "Thabit",  arabic: "ثابت",  short: "Established",
+      def: "Firmly standing. A report checked so carefully — chain and words together — that scholars count it as reliable.",
+      aliases: ["thabit"] },
+    adil:    { term: "'Adil",   arabic: "عادل",  short: "Upright",
+      def: "A narrator known for honest, fair conduct. Uprightness is one half of being trustworthy; precise memory is the other.",
+      aliases: ["'adil", "‘adil"] },
+    rijal:   { term: "Ilm al-rijal", arabic: "علم الرجال", short: "The science of narrators",
+      def: "The books scholars wrote about the people in the chains — who each narrator was and how reliable. It is how we know a name is upright, forgetful, or unknown.",
+      aliases: ["ilm al-rijal", "rijal"] }
+  },
+  glossaryNote: "Plain-language starter definitions to help you follow the story. Full technical meanings, and any judgement about real reports, belong to qualified scholars."
 };

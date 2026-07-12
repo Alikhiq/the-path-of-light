@@ -39,6 +39,27 @@
 
   const requiredClues = ch => ch.clues.filter(c => !c.decoy);
 
+  /* --------------------------------------------------------------- glossary */
+  // Build a term index ONCE from C.glossary. If the key is absent the whole
+  // feature degrades to a no-op. linkTerms() wraps whole-word transliteration
+  // matches in a tappable button at RENDER TIME only — it never rewrites the
+  // stored educational text in content.js.
+  let TERM_RE = null; const TERM_MAP = {};
+  (function buildTerms() {
+    const g = C.glossary; if (!g) return;
+    const alts = [];
+    Object.keys(g).forEach(k => (g[k].aliases || [k]).forEach(a => {
+      TERM_MAP[a.toLowerCase()] = k;
+      alts.push(a.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    }));
+    alts.sort((a, b) => b.length - a.length); // longest alias wins (e.g. "ilm al-rijal" over "rijal")
+    TERM_RE = new RegExp("(^|[^\\w'’-])(" + alts.join("|") + ")(?=$|[^\\w'’-])", "gi");
+  })();
+  const linkTerms = text => !TERM_RE ? text :
+    text.replace(TERM_RE, (m, pre, w) =>
+      `${pre}<button type="button" class="term-link" data-term="${TERM_MAP[w.toLowerCase()]}">${w}</button>`);
+  const openGlossary = key => openCasebook("glossary", key);
+
   /* ---------------------------------------------------------------- screens */
   function show(screen) {
     $("#hub").classList.toggle("hidden", screen !== "hub");
@@ -154,14 +175,23 @@
   const closeDialogue = () => $("#dialogue").classList.add("hidden");
 
   let _typer = null;
+  // Terms are linkified only once the line has fully typed (or instantly under
+  // prefers-reduced-motion / on skip), so a tappable button never appears
+  // mid-word during the typewriter animation.
   function typeText(full) {
     const el = $("#dText"); el._full = full;
     clearInterval(_typer); _typer = null;
-    if (reduced()) { el.textContent = full; return; }
+    if (reduced()) { el.innerHTML = linkTerms(full); return; }
     el.textContent = ""; let i = 0;
-    _typer = setInterval(() => { el.textContent = full.slice(0, ++i); if (i >= full.length) { clearInterval(_typer); _typer = null; } }, 16);
+    _typer = setInterval(() => {
+      el.textContent = full.slice(0, ++i);
+      if (i >= full.length) { clearInterval(_typer); _typer = null; el.innerHTML = linkTerms(full); }
+    }, 16);
   }
-  function skipType() { if (_typer) { clearInterval(_typer); _typer = null; } const el = $("#dText"); if (el._full) el.textContent = el._full; }
+  function skipType() {
+    if (_typer) { clearInterval(_typer); _typer = null; }
+    const el = $("#dText"); if (el._full) el.innerHTML = linkTerms(el._full);
+  }
 
   function renderDialogue() {
     const d = state.dialogue[state.step];
@@ -262,31 +292,60 @@
     });
   }
 
-  function openCasebook(type) {
+  // Tab strip prepended to every casebook view so all sections are reachable
+  // without an index.html change. Chain/Glossary tabs appear only when present.
+  const tabsHtml = (active, ch) => {
+    const tabs = [["journal", "Casebook"], ["sources", "Sources"]];
+    if (ch.chain) tabs.push(["chain", "Sanad"]);
+    if (C.glossary) tabs.push(["glossary", "Glossary"]);
+    return `<div class="sheet-tabs" role="group" aria-label="Casebook sections">` +
+      tabs.map(([t, l]) => `<button type="button" data-tab="${t}" aria-pressed="${t === active}">${l}</button>`).join("") +
+      `</div>`;
+  };
+
+  function openCasebook(type, focusKey) {
     const ch = state.chapter || C.chapters[0];
-    const isSources = type === "sources", isChain = type === "chain";
-    $("#sheetEyebrow").textContent = isChain ? "Chain of narrators · sanad" : isSources ? "Method & source notes" : "Investigation record";
-    $("#sheetTitle").textContent = isChain ? "The Chain" : isSources ? "How reports are checked" : ch.title;
-    let html;
-    if (isChain) {
-      html = renderChain(ch);
+    const isSources = type === "sources", isChain = type === "chain", isGloss = type === "glossary";
+    $("#sheetEyebrow").textContent = isGloss ? "Words of the craft" : isChain ? "Chain of narrators · sanad" : isSources ? "Method & source notes" : "Investigation record";
+    $("#sheetTitle").textContent = isGloss ? "Glossary" : isChain ? "The Chain" : isSources ? "How reports are checked" : ch.title;
+    let html = tabsHtml(type || "journal", ch);
+    if (isGloss) {
+      const g = C.glossary;
+      html += `<p class="sheet-intro">Tap any golden word in the story to jump here. Plain words first — the craft terms follow.</p>` +
+        Object.keys(g).map(k => {
+          const t = g[k];
+          return `<div class="record" id="gloss-${k}" tabindex="-1"><span>${t.term}${t.arabic ? ` · <i class="term-arabic">${t.arabic}</i>` : ""}</span>` +
+            `<strong>${t.short}</strong><p>${t.def}</p></div>`;
+        }).join("") +
+        `<div class="source-note">${C.glossaryNote || "Plain-language starter definitions. Full technical meanings belong to qualified scholars."}</div>`;
+    } else if (isChain) {
+      html += renderChain(ch);
     } else if (isSources) {
-      html = `<p class="sheet-intro">This story teaches source literacy — not independent hadith grading or religious rulings.</p>` +
-        ch.sources.map(s => `<div class="record"><span>${s.label}</span><p>${s.note}</p></div>`).join("") +
+      html += `<p class="sheet-intro">This story teaches source literacy — not independent hadith grading or religious rulings.</p>` +
+        ch.sources.map(s => `<div class="record"><span>${s.label}</span><p>${linkTerms(s.note)}</p></div>`).join("") +
         `<div class="source-note">${ch.guardrail}</div>`;
     } else {
-      html = `<p class="sheet-intro">Evidence gathered in ${ch.place}.</p>` +
+      html += `<p class="sheet-intro">Evidence gathered in ${ch.place}.</p>` +
         ch.clues.map((c, i) => {
           const got = state.found.has(c.key);
           return `<div class="record ${got ? "" : "locked"}"><span>Evidence ${i + 1}${c.decoy ? " · decoy" : ""}</span>` +
             `<strong>${got ? c.title : "Undiscovered"}</strong>` +
-            `<p>${got ? c.copy : "Walk the street and examine this marker to record it."}</p></div>`;
+            `<p>${got ? linkTerms(c.copy) : "Walk the street and examine this marker to record it."}</p></div>`;
         }).join("") +
         `<div class="source-note">A fictional narrative built around real verification principles. Do not use the game alone to authenticate a report.</div>`;
     }
     $("#sheetBody").innerHTML = html;
+    $$(".sheet-tabs button").forEach(b => b.onclick = () => openCasebook(b.dataset.tab));
     if (isChain) wireChain(ch);
     $("#casebook").classList.remove("hidden");
+    if (isGloss && focusKey) {
+      const row = $("#gloss-" + focusKey);
+      if (row) {
+        row.classList.add("flash"); row.focus({ preventScroll: true });
+        row.scrollIntoView({ block: "center", behavior: reduced() ? "auto" : "smooth" });
+        setTimeout(() => row.classList.remove("flash"), 1600);
+      }
+    }
   }
   const closeCasebook = () => $("#casebook").classList.add("hidden");
 
@@ -381,7 +440,12 @@
     const updateSound = m => { $("#soundBtn").classList.toggle("muted", m); $("#soundBtn").setAttribute("aria-pressed", String(!m)); $("#soundLabel").textContent = m ? "Muted" : "Sound"; };
     $("#soundBtn").onclick = () => { if (A()) { A().init(); A().resume(); updateSound(A().toggleMute()); } };
     if (A()) updateSound(A().isMuted());
-    $("#dText").onclick = skipType;
+    // Tapping a glossary term opens the glossary; tapping plain text still skips.
+    $("#dText").onclick = e => { if (e.target.closest("[data-term]")) return; skipType(); };
+    document.addEventListener("click", e => {
+      const t = e.target.closest("[data-term]");
+      if (t) openGlossary(t.dataset.term);
+    });
     $$("[data-close]").forEach(x => x.onclick = closeCasebook);
     $("#closeDialogue").onclick = closeDialogue;
     $$("[data-suggest-open]").forEach(x => x.onclick = openSuggest);

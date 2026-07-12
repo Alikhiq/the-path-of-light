@@ -219,6 +219,19 @@ kbd{font-family:var(--mono);font-size:.7em;border:1px solid var(--line);border-r
 .chain-detail.is-weak{border-color:#e88a5a}
 .chain-detail.is-weak span{color:#e88a5a}
 
+/* glossary tabs + tappable terms */
+.sheet-tabs{display:flex;gap:6px;margin:-4px 0 14px;flex-wrap:wrap}
+.sheet-tabs button{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:6px 12px;transition:border-color .15s,background .15s,color .15s}
+.sheet-tabs button:hover,.sheet-tabs button:active{border-color:var(--gold);color:var(--ink)}
+.sheet-tabs button[aria-pressed="true"]{color:var(--navy);background:var(--gold);border-color:var(--gold)}
+.term-link{display:inline;padding:0 1px;font:inherit;color:var(--gold);
+  border-bottom:1px dotted var(--gold-d);border-radius:2px;cursor:pointer}
+.term-link:hover,.term-link:active{border-bottom-style:solid;background:rgba(242,205,106,.12)}
+.term-arabic{font-family:var(--serif);font-style:normal;color:var(--gold)}
+.record:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.record.flash{border-color:var(--gold);box-shadow:0 0 18px rgba(242,205,106,.25)}
+
 /* suggest */
 .suggest-card{width:min(100%,460px);background:rgba(9,17,32,.96);border:1px solid var(--panel-b);border-radius:20px;
   padding:22px;display:flex;flex-direction:column;gap:12px}
