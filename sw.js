@@ -10,9 +10,8 @@ const CORE = [
   "world.js",
   "manifest.webmanifest",
   "assets/icon.svg",
-  "assets/city-of-light.png",
-  "assets/baghdad-street.png",
-  "assets/ustadha-maryam.png"
+  "assets/city-of-light.jpg",
+  "assets/ustadha-maryam.jpg"
 ];
 
 self.addEventListener("install", e => {

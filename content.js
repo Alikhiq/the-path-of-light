@@ -37,7 +37,7 @@ window.CONTENT = {
       objective: "Find the keeper of the manuscript",
       image: "assets/baghdad-street.png",
       tint: "warm",
-      teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.png" },
+      teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "Tap the glowing golden marker to speak with the teacher.",
       clues: [
         { key: "books",   title: "A copied folio", x: 23, y: 71, hint: "Manuscript stall",
@@ -88,7 +88,7 @@ window.CONTENT = {
       objective: "Weigh each name in the chain",
       image: "assets/baghdad-street.png",
       tint: "neutral",
-      teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.png" },
+      teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "Use Scholar's Focus to reveal each narrator, then judge them.",
       clues: [
         { key: "adil", title: "The upright narrator", x: 20, y: 66, hint: "A known teacher",
@@ -139,7 +139,7 @@ window.CONTENT = {
       objective: "Find the link time makes impossible",
       image: "assets/baghdad-street.png",
       tint: "cool",
-      teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.png" },
+      teacher: { name: "Ustadha Maryam", role: "House of Wisdom", portrait: "assets/ustadha-maryam.jpg" },
       guide: "",
       clues: [
         { key: "death", title: "A recorded death", x: 26, y: 63, hint: "A dated register",
