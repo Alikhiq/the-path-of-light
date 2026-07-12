@@ -413,6 +413,15 @@ window.World = (function () {
     if (!raf) { last = 0; raf = requestAnimationFrame(frame); }
   }
 
+  // Gate of Wonder: the walkable district with NO markers — pure beholding.
+  function loadGate(config) {
+    ensure(); cbs = {}; mode = "gate"; seated = false; eyeY = 1.6; focus = false; revealAll = false;
+    clearScene(); buildDistrict(config);
+    player.pos.set(0, 1.6, 21); player.yaw = 0; player.pitch = 0;   // arrive at the south gate, facing the city
+    active = true;
+    if (!raf) { last = 0; raf = requestAnimationFrame(frame); }
+  }
+
   function setSeated(on) {
     if (seated === on) return;
     seated = on;
@@ -526,5 +535,5 @@ window.World = (function () {
     renderer.render(scene, camera);
   }
 
-  return { load, loadHalaqa, unload, setFound, setFocus, rise: () => setSeated(false) };
+  return { load, loadHalaqa, loadGate, unload, setFound, setFocus, rise: () => setSeated(false) };
 })();

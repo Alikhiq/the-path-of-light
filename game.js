@@ -308,6 +308,29 @@
     $("#stillPanel").classList.remove("hidden");
   }
 
+  /* -------------------------------------------------------- gate of wonder */
+  // Station 1, the arrival: walk night Baghdad and behold it — no task, no reward.
+  let gateIdx = 0, gateTimer = 0;
+  function enterGate() {
+    const g = C.gate; if (!g) return;
+    state.chapter = null; state.inGate = true;
+    $("#chTitle").textContent = g.title;
+    $("#chEra").textContent = g.place;
+    $("#brandSeal").textContent = C.brandWord;
+    $("#chapter").className = "screen in-gate";
+    show("chapter");
+    World.loadGate({ id: "gate", tint: "warm", landmark: "library", mood: { stars: 460, horizonLift: 0.42 } });
+    if (A()) A().startBed("warm");
+    gateIdx = 0; $("#gateLine").textContent = g.lines[0];
+    clearInterval(gateTimer);
+    gateTimer = setInterval(() => {
+      gateIdx = (gateIdx + 1) % g.lines.length;
+      const el = $("#gateLine"); el.style.opacity = "0";
+      setTimeout(() => { el.textContent = g.lines[gateIdx]; el.style.opacity = "1"; }, 700);   // soft cross-fade of wonder lines
+    }, 6500);
+    $("#gatePanel").classList.remove("hidden");
+  }
+
   /* -------------------------------------------------- the return (encounter) */
   // A pure-dialogue street scene: method + stillness as conduct. Reuses the
   // dialogue overlay; restraint ("its reliability is not established") wins.
@@ -344,7 +367,8 @@
     if (state.seated) accrueSit();
     if (window.World) World.unload();
     if (A()) { A().stillOff(); A().stopBed(); }
-    state.inHalaqa = false; state.seated = false;
+    state.inHalaqa = false; state.seated = false; state.inGate = false;
+    clearInterval(gateTimer); $("#gatePanel").classList.add("hidden");
     $("#stillPanel").classList.add("hidden"); $("#stillPanel").classList.remove("hushed", "leaving");
     save();
   }
@@ -568,6 +592,8 @@
     $("#backBtn").onclick = () => { exitWorld(); renderHub(); };
     $("#circleBtn").onclick = enterHalaqa;
     $("#returnBtn").onclick = enterReturn;
+    $("#gateBtn").onclick = enterGate;
+    $("#gateBegin").onclick = () => { exitWorld(); renderHub(); };
     $("#focusBtn").onclick = () => setFocus();
     $("#journalBtn").onclick = () => openCasebook("journal");
     $("#sourcesBtn").onclick = () => openCasebook("sources");

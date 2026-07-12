@@ -37,6 +37,7 @@
       <p id="hubIntro" class="hub-intro"></p>
       <div id="chapterGrid" class="chapter-grid"></div>
       <div class="hub-actions">
+        <button id="gateBtn" class="ghost-button gate-btn"><span>✦</span> Gate of Wonder</button>
         <button id="circleBtn" class="ghost-button circle-btn"><span>☾</span> The Circle of Stillness</button>
         <button id="returnBtn" class="ghost-button"><span>✦</span> A Rumour in the Street</button>
         <button data-suggest-open class="ghost-button"><span>✎</span> Suggest an idea</button>
@@ -85,6 +86,11 @@
       <button id="soundBtn" aria-pressed="false"><span>♪</span><small id="soundLabel">Sound</small></button>
       <button id="controlsBtn"><span>⚙</span><small>Controls</small></button>
     </nav>
+
+    <section id="gatePanel" class="gate-panel hidden" aria-label="Gate of Wonder">
+      <p id="gateLine" class="gate-line"></p>
+      <button id="gateBegin" class="gold-button">Walk on <span>→</span></button>
+    </section>
 
     <section id="stillPanel" class="still-panel hidden" aria-label="The circle">
       <p id="stillSpeaker" class="still-speaker"></p>

@@ -313,5 +313,21 @@ window.CONTENT = {
       { text: "…You did not rush to believe, nor to deny. You weighed it, and you were honest about what you do not yet know. That restraint is the harder road — and the truer one. Peace be with you, friend.",
         choices: [ { label: "Walk on.", to: "close" } ] }
     ]
+  },
+
+  /* ------------------------------------------------------------------- GATE
+     "Gate of Wonder" — station 1, the arrival. Pure spectacle: beauty as the
+     doorway, before any method. No task, no reward — just behold the city,
+     then walk on. Lines cycle softly. Edit freely. */
+  gate: {
+    title: "Gate of Wonder",
+    place: "The city gate · nightfall",
+    lines: [
+      "Baghdad at night — a thousand lamps, and beneath them, a thousand stories.",
+      "Domes and minarets; the House of Wisdom's windows still gold with study.",
+      "Merchants, scholars, travellers of every land — all drawn to one city of light.",
+      "Some of what you will hear here is true. Some only sounds true.",
+      "Walk gently. Wonder first — then learn to tell them apart."
+    ]
   }
 };
