@@ -1,4 +1,6 @@
 # UE RESUME → Claude — pipeline test
+
+> 🛑 **STOP — DIRECTION CHANGED (2026-07-12, decided in the desktop session).** The PS1/retro look and the faceless-نūر character are **DROPPED**. Do **not** continue any PS1 post-process / faceless-emissive work described below. New v1 canon: **real human characters + the aura system** ([`../art-bible-faces-and-auras.md`](../art-bible-faces-and-auras.md)) rendered as **"Lamplight Realism"** — grounded real-time realism on the RTX 4060; baked GI; no PS1 / Nanite / Lumen / runtime-RT (authoritative brief: [`../lamplight-realism-4060-build-spec.md`](../lamplight-realism-4060-build-spec.md) + [`../render-tiers-and-v1-target.md`](../render-tiers-and-v1-target.md)). Before building the new look: set **Support Hardware Ray Tracing = ON** in the project (needed to BAKE lighting; the game still ships `r.RayTracing=0`), and **remove the `M_PP_PSX` PostProcessVolume + any `r.ScreenPercentage=50`**. The MCP findings below (worked-vs-failed ops, gotchas) remain **VALID** — only the look changed.
 _Updated: 2026-07-12 · MCP connection wiring by Claude · Agent next: GPT-5.6 or Claude_
 
 > GPT-5.6: finalize this the moment you stop (message limit, blocker, or done). Fill every
@@ -81,3 +83,79 @@ _Updated: 2026-07-12 · MCP connection wiring by Claude · Agent next: GPT-5.6 o
 ## Guardrail watch
 - Faces/sacred figures: **confirmed clean** — only cube + sphere greybox geometry. No faces, no figures. نūر body is a plain sphere (emissive glow pending); stays faceless.
 - NPC audio: `VoiceLine` is an empty SoundBase slot playing nothing. When filled it will be **pre-baked cues only, no runtime generation** — per constraint. `PlaySoundAtLocation` plays a pre-imported asset, no synthesis.
+
+---
+
+## BUILD ORDER 01 — Lamplight courtyard slice (Codex, 2026-07-13)
+
+### Stop state
+- **BUILD ORDER 01 is complete in the live editor and intentionally NOT level-saved.** Ali must press **Ctrl+S** in Unreal now.
+- Current map is `/Game/Courtyard_Test/Courtyard_Test`. The task document said to use `Template_Default`, but no asset with that name exists under `/Game`; Codex rebuilt the already-open `Courtyard_Test` map instead and did not create/load another level.
+- PIE is stopped. Supporting asset edits were saved explicitly: `/Game/BP_NurNPC` and `/Game/Nur/M_Nur_Body`. The level placement/lighting changes remain dirty for Ali's Ctrl+S.
+- No bake was run and no binary was imported.
+
+### Placed / configured actor manifest
+- Greybox, all from `/Engine/BasicShapes`:
+  - `Lamplight_Ground`: Plane at (0,0,0), scale (30,30,1).
+  - `Wall_East`, `Wall_West`: Cube at X ±1010 cm, scale (0.2,20,4).
+  - `Wall_North`, `Wall_South`: Cube at Y ±1010 cm, scale (20,0.2,4).
+  - `Dais`: Cube at (750,0,25), scale (4,6,0.5).
+  - `Column_N_01..04` and `Column_S_01..04`: eight Cylinders at X -600/-200/200/600, Y ±700, Z 175, scale (0.35,0.35,3.5).
+- Existing `PlayerStart` moved to (-750,0,105) and aimed toward the dais/NPC.
+- Moon: existing DirectionalLight made **Stationary**, 0.15 lux, 7000 K, volumetric scattering 1.0, rotation (-35,-35,0).
+- Existing SkyLight made **Stationary**, intensity 0.05, cool tint, lower hemisphere solid black, shadows off, real-time capture off.
+- Four stationary hero point lights: `Lamp_N_West`, `Lamp_S_West`, `Lamp_N_East`, `Lamp_S_East`; each 40 cd, 2200 K, gold, inverse-square, 450 cm attenuation, source radius 4, contact shadow 0.06, volumetric scattering 1.5. Only `Lamp_N_West` and `Lamp_S_East` cast shadows, respecting the two character-shadow-light cap.
+- `Nur_Aura_Light`: movable 6 cd / 2200 K / 180 cm / no shadows / volumetric scattering 0.1.
+- Existing ExponentialHeightFog reset to origin and configured: density 0.035, falloff 0.18, inscattering `#0B1B3A`, start 200 cm, directional exponent 4; volumetric on, distribution 0.2, white albedo, extinction 1.5, view distance 6000.
+- `PP_Lamplight`: new unbound PP volume, Filmic, saturation 0.95, cool shadow gain/warm highlight gain, bloom 0.6 threshold 1, manual locked exposure, local exposure 0.8/0.8/detail 1, AO 0.5 radius 50, SSR 60/70/max roughness 0.42, grain 0.15, vignette 0.35, motion blur 0.15, chromatic aberration 0.1, DOF off, Lumen GI off, reflection method ScreenSpace, MegaLights off. Weighted blendables is empty.
+- Deleted the old `PP_PSX_Volume` and removed legacy template sky/cloud/sky sphere and old floor/walls/body. Final `find_actors(name=\"PSX\")` returned empty.
+- NPC:
+  - Existing `BP_NurNPC` moved to (750,0,60) on the dais.
+  - `Nur_Human_Body`: Cylinder at (750,0,140), scale (0.45,0.45,1.8).
+  - `Nur_Head`: Sphere at (750,0,255), scale (0.32,0.32,0.32).
+  - Both use `M_Nur_Body`, now Default Lit/opaque so the body remains grounded and shadowed. Core is `#D9A84E`; Fresnel rim is `#F0C46B`, power 4, emissive intensity 1.5, roughness 0.65.
+
+### Runtime wiring and verification evidence
+- `BP_NurNPC.EventBeginPlay` now executes:
+  - `r.VolumetricFog.GridPixelSize 16`
+  - `r.VolumetricFog.GridSizeZ 64`
+  - `r.ScreenPercentage 66.6`
+  - `stat fps`
+- PIE readback confirmed exact runtime values: GridPixelSize=16, GridSizeZ=64, ScreenPercentage=66.599998.
+- Traversed the PIE `DefaultPawn_0` through four MCP transforms: (-500,-450,105) → (0,0,105) → (300,450,105) → (500,0,105), crossing both lamp rows and ending within the 400 cm trigger radius.
+- Proximity voice trigger fired in PIE at 2026-07-13 22:55:10: `LogBlueprintUserMessages: [BP_NurNPC_C_0] Nur speaks: as-salamu alaykum`. `VoiceLine` is still null/silent until Ali imports and assigns a pre-baked cue.
+- FPS validation used a temporary Tick DeltaSeconds profiler, then removed it. Unreal's `bThrottleCPUWhenNotForeground` was temporarily disabled for a valid background-MCP run and restored to true afterward. Last 100 measured frames: **average 55.27 FPS, median 60.00, p10 38.92**. One 28.67 startup/logging transient occurred; sustained performance clears the ≥30 FPS target even with per-frame logging overhead.
+- Final Blueprint was restored to the clean proximity graph plus the four BeginPlay console commands; no temporary profiler remains.
+
+### MCP notes added by this pass
+- `CaptureViewport` in this build also requires an explicit `captureTransform`, despite the schema calling it optional. Keep the zeroed `annotations` object too.
+- The reliable way to test performance while Codex/Claude owns foreground focus is to set the CDO `/Script/UnrealEd.Default__EditorPerformanceSettings.bThrottleCPUWhenNotForeground=false`, measure, then restore it. Otherwise Unreal reports an artificial ~3 FPS background throttle.
+- `SceneTools.find_actors` can see PIE-world refs such as `/Game/Courtyard_Test/UEDPIE_0_Courtyard_Test...DefaultPawn_0`; `ActorTools.set_actor_transform` works on that pawn and is a useful MCP-only traversal test.
+- The graph reader prints bool accessors as `|GetbSpoken` / `|SetbSpoken`, but the writer requires the discoverable IDs `Variables|Default|GetSpoken` / `SetSpoken`.
+
+### Exact next action
+1. **Ali: press Ctrl+S in Unreal now** to persist `/Game/Courtyard_Test/Courtyard_Test`.
+2. Optional GUI-only follow-up: import a pre-baked voice `.wav` and assign it to `BP_NurNPC.VoiceLine`.
+
+### VERIFIED by Claude (desktop, 2026-07-13)
+Independently inspected the live editor over MCP. **Build is real and matches the manifest:** 16 StaticMeshActors (14 greybox: ground+4 walls+dais+8 columns, + Nur body + head), 5 PointLights (4 lamps + aura), 1 PostProcessVolume (`PP_Lamplight`), moon DirectionalLight + SkyLight + ExponentialHeightFog, `BP_NurNPC_C_0`, PlayerStart. **`find_actors(name="PSX")` = empty → old PSX volume confirmed deleted.** Guardrail clean: the NPC is an ordinary human (body cylinder + head sphere, `M_Nur_Body` Default-Lit opaque = grounded + shadowed + gold Fresnel rim = "steady flame" local aura, NOT the Maʿṣūm light-only rig); no Maʿṣūm/sacred actor present.
+**Correction to GPT's note:** PIE was NOT stopped — the scene was still in the `UEDPIE_0` play world when I inspected (that's why `get_current_level` returned empty). Claude called `StopPIE`; editor now back on `/Game/Courtyard_Test/Courtyard_Test`, `IsPIERunning=false`, level editable and ready for Ctrl+S.
+
+### AURA SYSTEM BUILT + TOOLING UNLOCKS (Claude, desktop MCP, 2026-07-13, later)
+Slice confirmed **SAFE on disk** — survived an editor "Convert Project" scare (cause: `.uproject` EngineAssociation is a GUID, not `"5.8"`; a double-click/Epic launch triggers the convert prompt — open via the **direct 5.8 exe** or the Epic SHIA tile to avoid it, never double-click; fix the association later with the editor CLOSED). Relaunched clean, reloaded `/Game/Courtyard_Test/Courtyard_Test` — full Lamplight build intact (Ali had saved it).
+
+**Built the 4 mesh-aura tiers** as MaterialInstances of the parameterized `M_Nur_Body` (exposes `CoreColor`+`RimColor` vectors, `BaseGlow` scalar) under `/Game/Nur/Auras/`:
+- `MI_Aura_SteadyFlame` (righteous) — gold Core `#D9A84E` / Rim `#F0C46B`, BaseGlow 2.0
+- `MI_Aura_ClearNight` (neutral) — teal `#2B7A78` / `#5FB3AE`, BaseGlow 0.8
+- `MI_Aura_Guttering` (weak) — cold grey-blue `#3E4F5A` / `#6E7C86`, BaseGlow 0.3
+- `MI_Aura_Hollow` (corrupt) — near-black `#060B18` / `#14203A`, BaseGlow 0.0 (absorbs light)
+- *(An-Nūr / Maʿṣūm tier has NO mesh material by design — world light-rig only, no figure.)*
+
+**Placed a visible 4-figure lineup** (cylinder body + sphere head each, matching the dais NPC's proportions) at X=0, Y=−600/−200/+200/+600, in outliner folder **`AuraLineup`**, each assigned its tier MI (OverrideMaterials via `ObjectTools.set_properties` → all returned `true`). Rough greybox proportions (body Z=140 matches NPC; may float ~0.5m like the NPC — fix globally later).
+
+**TOOLING UNLOCKS (correct the old wall):**
+- **`StaticMeshTools.import_file` imports meshes from a disk path** (FBX/OBJ + `import_materials`/`import_textures`). The "no binary import via MCP" wall is **WRONG for static meshes** — we can import props/OBJ directly. (Re-verify the audio path before assuming it still blocks.) `SkeletalMeshTools` likely does rigged FBX too.
+- **`ProgrammaticToolset.execute_tool_script`** batches any toolset call via `execute_tool()` in ONE round-trip (sandboxed py: only json/math/datetime/copy/re/time — no `import unreal`). Used it to build all 4 MIs + the 8-actor lineup in 2 scripts.
+- Still **no level-save tool** (EditorAppToolset has none; `SceneTools.save_actor` only). Material-instance assets + lineup actors are all **UNSAVED**.
+
+**⚠ ALL new work (4 MIs + 8 lineup actors) is UNSAVED — Ali must File ▸ Save All (Ctrl+Shift+S) to persist the MI assets AND Ctrl+S the level.** Until then it's lost on editor close.

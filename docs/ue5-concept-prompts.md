@@ -1,5 +1,7 @@
 # UE5 Gameplay Concepts — 30 image prompts
-_"The Path of Light," imagined as an Unreal Engine 5 render (elevated PS1-retro). Paste each prompt into your image generator (Gemini, Midjourney, etc.) for the concept renders. Art direction by Fable 5._
+_"The Path of Light" — Unreal Engine 5 concept renders. Art direction by Fable 5._
+
+> ⚠️ **SUPERSEDED (2026-07-12).** The render doctrine + "نūr light-being" character look in this sheet are **RETIRED**. Current canon: **real human characters + the aura system** ([`art-bible-faces-and-auras.md`](art-bible-faces-and-auras.md)) rendered as **"Lamplight Realism"** — grounded night realism on the RTX 4060, **no PS1 / retro / low-poly** ([`render-tiers-and-v1-target.md`](render-tiers-and-v1-target.md) + [`lamplight-realism-4060-build-spec.md`](lamplight-realism-4060-build-spec.md)). For fresh concept art use the master prompt in the render-tiers doc. The 30 prompts below are kept only as **archive** of the old faceless-PS1 scene — do not render them as current. One guardrail unchanged: **never depict the Prophet/Imams/sacred figures — light only.**
 
 ## The art bible (the shared look — already appended to each prompt)
 

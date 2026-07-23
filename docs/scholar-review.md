@@ -25,6 +25,19 @@ Mark each **OK / Fix / Discuss** and note the correction.
 
 ---
 
+## A0. UE5 track — visual depiction & auras (NEW 2026-07-12, real-character pivot)
+
+The shipped **browser** game stays faceless (calligraphy / silhouette only) — every item from A onward concerns only the browser content. These A0 items concern only the **Unreal 5 track**, which now uses *real visible human characters* + an aura system. Sign these off before any public UE build ships. Reviewer context: [`art-bible-faces-and-auras.md`](art-bible-faces-and-auras.md), [`render-tiers-and-v1-target.md`](render-tiers-and-v1-target.md).
+
+| # | Item | What to verify |
+|---|---|---|
+| V1 | Ordinary people (narrators, scholars, citizens) are shown with real faces. | Is depicting ordinary, non-sacred persons with faces acceptable in your school? On-record recommendation: yes for ordinary people, never for the Maʿṣūmīn. |
+| V2 | The 14 Maʿṣūmīn (Allah, Prophet ﷺ, Fāṭima, the 12 Imams) + angels are NEVER given a face or body — rendered as **light only** (radiance / Kufic light-pool / off-frame threshold glow; no head geometry, no shadow, camera ≥6 m). | Confirm the light-only "Presence" treatment is acceptable; review the presence storyboards; confirm no shot implies a hidden face. |
+| V3 | An **aura system** shows spiritual/moral state (warm steady glow = righteous; dim/cold = corrupt). | Confirm the aura framing raises no *kashf* / unseen-judgement concern; confirm it is NEVER applied to real historical narrators (locked to a neutral aura in data) so no real person is shown as blessed/damned. |
+| V4 | Does any real historical figure get a face at all? | On-record recommendation: none of the Maʿṣūmīn; ordinary fictional/historical narrators only. Confirm. |
+
+---
+
 ## A. Foundational claims (appear across chapters)
 
 | # | Claim (as worded in game) | What to verify |

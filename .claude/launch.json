@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "path-of-light",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "import os,http.server,socketserver;socketserver.TCPServer(('',int(os.environ.get('PORT','8080'))),http.server.SimpleHTTPRequestHandler).serve_forever()"],
+      "autoPort": true
+    },
+    {
+      "name": "value-towing",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8123", "--directory", "C:/ProjectX/value-towing/site"],
+      "port": 8123
+    }
+  ]
+}

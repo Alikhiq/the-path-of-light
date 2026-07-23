@@ -1,6 +1,6 @@
 # The Path of Light — Roadmap
 
-> Scope guardrails for everything below: the game teaches the **method** of verifying reports — it never grades a real hadith or issues rulings. No depicted faces; no sacred figures. All in-game religious text is placeholder **(to be written + verified by qualified Twelver Shia scholars)**.
+> Scope guardrails for everything below: the game teaches the **method** of verifying reports — it never grades a real hadith or issues rulings. **Never depict the Maʿṣūmīn (Allah, the Prophet ﷺ, Fatima, the Imams) or any sacred figure** — in the UE5 track they appear as *light only* (no face, no body); the shipped **browser** game shows **no faces at all** (calligraphy / silhouette). The UE5 track *does* show ordinary people (narrators, citizens) with real faces + an aura system. All in-game religious text is placeholder **(to be written + verified by qualified Twelver Shia scholars)**.
 
 ---
 

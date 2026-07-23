@@ -230,3 +230,15 @@ Level: **`/Game/Oven_Scene/Oven_Scene`**. Room interior ≈ X ∈ [-350,350], Y 
 ---
 
 *Greybox built + saved 2026-07-14 by Claude (desktop, MCP). Scene is safe on disk. Pick up at Pass A. Keep the light abstract, keep the people human, save often, screenshot everything.*
+
+---
+
+## LOG — GPT-5.6 Oven dressing pass + Claude verification (2026-07-14)
+
+**GPT-5.6 (Codex) did:** replaced the two grey placeholders with real MetaHumans `MH_OldMan_Doorway` (30,-260,0 yaw90) + `MH_Storyteller` (110,-70,0 yaw55, both `BP_MHC_Base_Male`); added 5 dressing materials under `/Game/Oven_Scene/Materials/` (M_Oven_Rug_Red, Cushion_Indigo, Cushion_Ochre, Tannour_Clay, Pottery_Dark) applied to rug/cushions/tannour/pottery; added props under `Oven/Props/Dressing` (Oven_LowTable, two pottery jars body+neck, hanging lamp chain+glow, candle body+flame); added `Practical_HangingLamp` (1.5, 2400K) + `Practical_Candle` (0.8, 2200K). Saved after each milestone. Noted (correctly) that robes, seated/gesturing animation, and Niagara fire remain owner-import/retarget work (no compatible Idle/Sit AnimSequence and no Niagara fire under `/Game`).
+
+**Claude verified independently over MCP (all TRUE):** both MetaHumans confirmed real `BP_MHC_Base_Male_C` at the stated transforms; 5 materials on disk; `level_dirty=false` (saved). **Guardrail confirmed clean:** `LightBeing_Core` still `/Game/Nur/M_Nur_Presence`, still a StaticMeshActor sphere (NOT a MetaHuman), `CastShadow=false` + `bCastDynamicShadow=false` + `bCastStaticShadow=false`; it reads as the brightest, faceless, bodiless presence in the hero frame. Ordinary men have faces + shadows = correct.
+
+**Claude fixed one real problem:** the two MetaHumans rendered in **base-body underwear (near-nude)** — unacceptable in a sacred Shia scene even as a placeholder. Added greybox **robe drapes** `Robe_OldMan` (M_Oven_Cushion_Ochre) + `Robe_Storyteller` (M_Oven_Tannour_Clay): opaque cloth cylinders (0.62,0.62,1.42) at each man's XY, floor-to-neck, so torso+legs are covered and only head/face/arms show. Dignified + reads robed. Saved. **This is a stopgap — real robe/thobe cloth assets (owner Fab import or a modeled outfit) still supersede it, and should replace the cylinders.** When real robes land, delete `Robe_OldMan`/`Robe_Storyteller`.
+
+**Scene state now:** room dressed (red rug, cushions, clay tannour, pottery, low table, hanging lamp, candle), two robed MetaHumans (standing ref pose), the faceless light-being glowing as the room's heart, firelit. All saved. **Still open (owner + next agent):** seated/gesturing poses (anim import or Mannequin→MetaHuman IK-retarget), real robe cloth, Niagara/Fab fire in the tannour, hero Middle-Eastern interior kit, GI bake + Movie Render Queue cinematic still to match the reference.

@@ -1,4 +1,6 @@
 # UE5 نūر + PS1 material build — results
+
+> ⚠️ **SUPERSEDED (2026-07-12) — direction changed to "Lamplight Realism," PS1 retired.** `M_PP_PSX` (the PS1 posterize post-process) is **DEAD — delete its PostProcessVolume from the level** (see [`../lamplight-realism-4060-build-spec.md`](../lamplight-realism-4060-build-spec.md) §4 step 3). `M_Nur_Body` (gold emissive) **carries over** — it becomes the base for the realism **aura rim** (soft fresnel per lamp-rig tier), not a full-body glow. Everything below is the historical log of the now-retired PS1 test.
 _Built by Claude (Opus 4.8) via MCP, 2026-07-12. Source: ultracode workflow `ue-ps1-nur-material-design` (8 agents; winner = Proposal B, balanced)._
 
 ## What got built + VERIFIED via MCP (zero GUI)

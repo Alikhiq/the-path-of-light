@@ -1,5 +1,7 @@
 # HANDOFF → GPT-5.6 — UE5 pipeline test ("The Circle courtyard")
 
+> ✅ **TEST COMPLETE + ⚠️ LOOK RETIRED (2026-07-12).** The pipeline test PASSED (MCP drives the editor — greybox courtyard, voiced نūر NPC, materials, all agent-built). But its **PS1 / faceless-نūr look is retired**: v1 is now **real human characters + auras** ([`../art-bible-faces-and-auras.md`](../art-bible-faces-and-auras.md)) in the **"Lamplight Realism"** render target ([`../lamplight-realism-4060-build-spec.md`](../lamplight-realism-4060-build-spec.md)). Read below only as the historical test brief; build to the lamplight spec.
+
 You are an autonomous coding agent driving **Unreal Engine 5.8** through its **MCP server**. This is your complete brief — you do **not** have the prior conversation. Read it fully. **You may run out of messages mid-run; that is expected.** Section 7 tells you how to stop so Claude can resume from `docs/handoff/UE-RESUME-for-claude.md`. Producing/updating that resume file is part of the job.
 
 ---
